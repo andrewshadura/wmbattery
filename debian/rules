@@ -58,16 +58,12 @@ binary-arch: build install
 
 VERSION=$(shell expr "`dpkg-parsechangelog 2>/dev/null |grep Version:`" : '.*Version: \(.*\)')
 installhook:
-	dpkg-buildpackage -rfakeroot -tc
-	if [ `hostname` = 'kite' ] ; then \
-		cp ../wmbattery_$(VERSION).tar.gz ../../public; \
-		rm /home/ftp/pub/code/wmbattery/* || true; \
-		cp debian/changelog /home/pub/programs/wmbattery/CHANGES; \
-		echo $(VERSION) > /home/pub/programs/wmbattery/LATEST-VERSION-IS; \
-		cd /home/ftp/pub/code/wmbattery; \
+	rm /home/ftp/pub/code/wmbattery/* || true
+	cp debian/changelog /home/pub/programs/wmbattery/CHANGES
+	echo $(VERSION) > /home/pub/programs/wmbattery/LATEST-VERSION-IS
+	cd /home/ftp/pub/code/wmbattery; \
 		ln -sf ../debian/wmbattery_$(VERSION).tar.gz wmbattery_$(VERSION).tar.gz; \
-		ln -sf ../debian/wmbattery_$(VERSION).tar.gz wmbattery.tar.gz; \
-	fi
+		ln -sf ../debian/wmbattery_$(VERSION).tar.gz wmbattery.tar.gz
 
 source diff:                                                                  
 	@echo >&2 'source and diff are obsolete - use dpkg-source -b'; false
