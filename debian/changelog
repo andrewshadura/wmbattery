@@ -1,3 +1,10 @@
+wmbattery (2.13) unstable; urgency=low
+
+  * Added support for ACPI version 20030109 (2.5 kernel), and generally
+    support for changing ACPI strings across versions. Closes: #177249
+
+ -- Joey Hess <joeyh@debian.org>  Thu,  6 Feb 2003 14:50:21 -0500
+
 wmbattery (2.12) unstable; urgency=low
 
   * Rebuild w/o /usr/doc link.

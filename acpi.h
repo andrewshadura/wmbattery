@@ -43,3 +43,24 @@ extern char acpi_thermal_info[ACPI_MAXITEM][128];
 extern char acpi_thermal_status[ACPI_MAXITEM][128];
 #endif
 
+/* This enum is used to index into the acpi_labels */
+enum acpi_labels_items {
+	label_info,
+	label_status,
+	label_battery,
+	label_ac_adapter,
+	label_online,
+	label_unknown,
+	label_last_full_capacity,
+	label_present,
+	label_remaining_capacity,
+	label_present_rate,
+	label_charging_state,
+#if ACPI_THERMAL
+	label_thermal,
+#endif
+};
+
+/* This is set to point to a list of strings used for the given acpi
+ *  * version. */
+extern char **acpi_labels;
