@@ -4,8 +4,16 @@
 #include <string.h>
 #include <X11/xpm.h>
 #include <X11/extensions/shape.h>
-#include <getopt.h>
 #include <stdarg.h>
+
+#ifdef __FreeBSD__
+#include <sys/file.h>
+#include <sys/ioctl.h>
+#include <machine/apm_bios.h>
+#else
+#include <getopt.h>
+#endif
+
 #include "wmbattery.h"
 #include "mask.xbm"
 
@@ -15,6 +23,15 @@ int screen;
 XpmIcon icon;
 Display *display;
 GC NormalGC;
+int pos[2] = {0, 0};
+
+#ifdef __FreeBSD__
+#define APM_STATUS_FILE "/dev/apm"
+#else
+#define APM_STATUS_FILE "/proc/apm"
+#endif
+
+char *apm_status_file = APM_STATUS_FILE;
 
 void error(const char *fmt, ...) {
   	va_list arglist;
@@ -28,12 +45,38 @@ void error(const char *fmt, ...) {
   	exit(1);
 }
 
+#ifdef __FreeBSD__
+
+int apm_read(apm_info *i) {
+	int fd;
+	struct apm_info info;
+
+	if ((fd = open(apm_status_file, O_RDONLY)) == -1) {
+    		return 0;
+	}
+	if (ioctl(fd, APMIO_GETINFO, &info) == -1) {
+		return 0;
+	}
+	close(fd);
+
+	i->ac_line_status = info.ai_acline;
+	i->battery_status = info.ai_batt_stat;
+	i->battery_flags = (info.ai_batt_stat == 3) ? 8: 0;
+	i->battery_percentage = info.ai_batt_life;
+	i->battery_time = info.ai_batt_time;
+	i->using_minutes = 0;
+	
+	return 1;
+}
+
+#else /* Linux */
+
 int apm_read(apm_info *i) {
 	FILE *str;
   	char units[10];
 	char buffer[100];
 
-	if (!(str = fopen("/proc/apm", "r")))
+	if (!(str = fopen(apm_status_file, "r")))
     		return 0;
 	fgets(buffer, sizeof(buffer) - 1, str);
 	buffer[sizeof(buffer) - 1] = '\0';
@@ -108,10 +151,12 @@ int apm_read(apm_info *i) {
   	return 1;
 }
 
+#endif /* linux */
+
 int apm_exists() {
 	apm_info i;
   
-        if (access("/proc/apm", R_OK))
+        if (access(apm_status_file, R_OK))
         	return 0;
 	return apm_read(&i);
 }
@@ -137,19 +182,38 @@ void load_images() {
 char *parse_commandline(int argc, char *argv[]) {
 	int c=0;
 	char *ret=NULL;
+        char *s;
 	extern char *optarg;
 	
   	while (c != -1) {
-  		c=getopt(argc, argv, "hd:");
+  		c=getopt(argc, argv, "hd:g:f:");
 		switch (c) {
 		  case 'h':
 			printf("\nUsage: wmbattery [options]\n");
               		printf("\t-d <display>\tselects target display\n");
-               		printf("\t-h\t\tdisplay this help\n\n");
+               		printf("\t-h\t\tdisplay this help\n");
+                        printf("\t-g +x+y\t\tposition of the window\n");
+			printf("\t-f file\t\tapm status file to use instead of " APM_STATUS_FILE "\n\n");
                		exit(0);
 		 	break;
 		  case 'd':
-		  	ret=optarg;
+		  	ret=strdup(optarg);
+                        break;
+  		  case 'g':
+                        s = strtok(optarg, "+");
+                        if (s) {
+                          pos[0]=atoi(s);
+                          if ((s = strtok(NULL, "+")) != NULL) {
+                            pos[1]=atoi(s);
+                          }
+                          else {
+                            pos[0]=0;
+                          }
+                        }
+                        break;
+		  case 'f':
+			apm_status_file = strdup(optarg);
+			break;
       		}
     	}
   
@@ -184,6 +248,8 @@ void make_window(char *display_name, int argc, char *argv[]) {
 
 	sizehints.width = 64;
   	sizehints.height = 64;
+  	sizehints.x = pos[0];
+  	sizehints.y = pos[1];
         back_pix = WhitePixel(display, screen);
         fore_pix = BlackPixel(display, screen);
   	win = XCreateSimpleWindow(display, root, sizehints.x, sizehints.y,
@@ -284,7 +350,7 @@ int main(int argc, char *argv[]) {
   	make_window(parse_commandline(argc, argv), argc ,argv);
 
 	/*  Check for APM support */
-  	if (! apm_exists)
+  	if (! apm_exists())
     		error("No APM support in kernel.");
 
 	load_images();
@@ -319,13 +385,11 @@ int main(int argc, char *argv[]) {
 	      	}
 	
 	      	/* Show if the battery is charging. */
-	      	switch (cur_info.battery_status) {
-		  case 3:
+	  	if (cur_info.battery_flags & 8) {
 			draw_image(CHARGING);
-			break;
-		  default: /* Not charging */
+		}
+	  	else {
 			draw_image(NOCHARGING);
-			break;
 	      	}
 	
 	      	/*

@@ -1,3 +1,10 @@
+wmbattery (1.13) unstable; urgency=low
+
+  * Added support for using files other than /proc/apm, via a -f switch.
+    (See bug #69585)
+
+ -- Joey Hess <joeyh@debian.org>  Mon, 21 Aug 2000 11:52:21 -0700
+
 wmbattery (1.12) unstable; urgency=low
 
   * Use /usr/share/icons/wmbattery, not /usr/X11R6/share. Sheesh. 

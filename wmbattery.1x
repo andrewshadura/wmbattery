@@ -3,7 +3,7 @@
 WMBATTERY \- Dockable APM/Battery Monitor
 .SH SYNOPSIS
 .B wmbattery
-[-h] [-d display]
+[-h] [-d display] [-f apmfile]
 .SH DESCRIPTION
 .PP
 .B wmbattery
@@ -56,6 +56,9 @@ Use the designated X display.
 .TP
 .B \-g +x+y
 Specify geometry to start up at. This specifies position, not size.
+.B \-f [apmfile]
+Use the specified file instead of /proc/apm (and /dev/apm on BSD systems).
+Useful on Apple Macintosh powerbooks which use the pmud for apm handling.
 .SH AUTHOR
 Joey Hess <joey@kitenet.net>, based on wmapm by
 Chris D. Faulhaber <jedgar@speck.ml.org>
