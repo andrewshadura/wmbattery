@@ -1,3 +1,13 @@
+wmbattery (2.16) unstable; urgency=low
+
+  * Another patch from Hugo Haas, this time it adds time-till-charged
+    estimates for systems that lack them. The estimates are on by default,
+    though they're only linear guesses and may not be accurate.
+  * Display dimmed time estimate field if there is no estimate available.
+  * -e switch renamed to -r and forces both estimates on.
+
+ -- Joey Hess <joeyh@debian.org>  Thu,  7 Aug 2003 16:41:37 -0400
+
 wmbattery (2.15) unstable; urgency=low
 
   * Patch from Hugo Haas <hugo@larve.net> to change when the icon is

@@ -20,4 +20,4 @@ Description: display laptop battery info, dockable in WindowMaker
  .
  wmbattery can use APM, ACPI, or even the SPIC that is in some Sony laptops.
  With ACPI, it supports multi-battery machines, and can estimate how long
- it will take the battery to finish charging.
+ it will take the battery to finish charging or discharging.

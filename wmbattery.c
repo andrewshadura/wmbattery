@@ -81,47 +81,65 @@ void estimate_timeleft(apm_info *cur_info) {
 	static time_t prev_estimate = 0;
 	/* Percentage at the last estimate */
 	static short percent = 0;
+	/* Where we charging or discharging the last time we were called? */
+	static short was_charging = 1;
+	/* Have we made a guess lately? */
+	static short guessed_lately = 0;
 
 	time_t t;
 	int interval;
+	short is_charging = cur_info->battery_flags & BATTERY_FLAGS_CHARGING;
 
 	errno = 0;
 	if (time(&t) == ((time_t)-1) && errno != 0)
 		goto estim_values;
-	
-	/* No change: decrease estimate */
-	if (percent == cur_info->battery_percentage) {
-		estimate -= t - estimate_time;
-		estimate_time = t;
-		if (estimate < 0)
-			estimate = 0;
-		goto estim_values;
-	}
 
-	/* The battery was charged: reset counters */
-	if (percent < cur_info->battery_percentage) {
-		percent = cur_info->battery_percentage;
+	if ((
+	     /* AC is on and battery is not charging anymore or ... */
+	     (cur_info->ac_line_status == AC_LINE_STATUS_ON) && !is_charging
+	     ) ||
+	    (
+	     /* ... the charging state has changed */
+	     is_charging ^ was_charging
+	     )) {
+		/* Reset counters */
 		battery_change_time = t;
-		estimate = 0;
+		estimate = -1;
+		guessed_lately = 0;
 		estimate_time = t;
 		prev_estimate = 0;
 		goto estim_values;
 	}
 
-	/* The battery level decreased: calculate estimate based
-	 * on decrease speed and previous estimate */
+	/* No change: decrease estimate */
+	if (percent == cur_info->battery_percentage) {
+		estimate -= t - estimate_time;
+		estimate_time = t;
+		if (guessed_lately && estimate < 0)
+			estimate = 0;
+		goto estim_values;
+	}
+
+	/* The battery level changed: calculate estimate based
+	 * on change speed and previous estimate */
+	guessed_lately = 1;
 	estimate_time = t;
 	interval = estimate_time - battery_change_time;
 	prev_estimate = estimate;
 	battery_change_time = estimate_time;
-	estimate = cur_info->battery_percentage * interval 
-		   / (percent - cur_info->battery_percentage);
-	percent = cur_info->battery_percentage;
+	estimate = (is_charging
+		    ? (cur_info->battery_percentage - 100)
+		    : cur_info->battery_percentage)
+		* interval / (percent - cur_info->battery_percentage);
 	if (prev_estimate > 0)
 		estimate = (estimate * 2 + prev_estimate) / 3;
 
 estim_values:
+	percent = cur_info->battery_percentage;
+	was_charging = is_charging;
 	cur_info->battery_time = estimate;
+	if (estimate < 0)
+		estimate = 0;
 	cur_info->using_minutes = 0;
 }
 
@@ -150,7 +168,7 @@ char *parse_commandline(int argc, char *argv[]) {
 	extern char *optarg;
 	
   	while (c != -1) {
-  		c=getopt(argc, argv, "hd:g:f:b:w:c:l:r");
+  		c=getopt(argc, argv, "hd:g:f:b:w:c:l:e");
 		switch (c) {
 		  case 'h':
 			printf("Usage: wmbattery [options]\n");
@@ -161,7 +179,7 @@ char *parse_commandline(int argc, char *argv[]) {
 			printf("\t-w secs\t\tseconds between updates\n");
 			printf("\t-l percent\tlow percentage\n");
 			printf("\t-c percent\tcritical percentage\n");
-			printf("\t-r\t\testimate remaining time\n");
+			printf("\t-e\t\tuse own time estimates\n");
                		exit(0);
 		 	break;
 		  case 'd':
@@ -404,20 +422,22 @@ void recalc_window(apm_info cur_info) {
 	}
 
       	/* Show time left */
+
+	/* A negative number means that it is unknown. Dim the field. */
+	if (cur_info.battery_time < 0) {
+		draw_letter(10, BIGFONT, COLON_OFFSET);
+		redraw_window();
+		return;
+	}
+
         if (cur_info.using_minutes)
         	time_left = cur_info.battery_time;
         else
         	time_left = cur_info.battery_time / 60; 
-	if (time_left < 0)
-		time_left = time_left * -1;
         hour_left = time_left / 60;
         min_left = time_left % 60;
         digit = hour_left / 10;
-	if (cur_info.battery_time < 0)
-		/* Sacrifice a diget to display the minus sign. */
-		draw_letter(11, BIGFONT, HOURS_TENS_OFFSET);
-	else
-	        draw_letter(digit,BIGFONT,HOURS_TENS_OFFSET);
+	draw_letter(digit,BIGFONT,HOURS_TENS_OFFSET);
         digit = hour_left % 10;
 	draw_letter(digit,BIGFONT,HOURS_ONES_OFFSET);
        	digit = min_left / 10;
@@ -441,10 +461,7 @@ void alarmhandler(int sig) {
 		/* Apm uses negative numbers here to indicate error or
 		 * missing battery or something. */
 		if (cur_info.battery_time < 0) {
-			if (cur_info.ac_line_status == AC_LINE_STATUS_ON) {
-				cur_info.battery_time = 0;
-			}
-			else if (! always_estimate_remaining) {
+			if (! always_estimate_remaining) {
 				/* No battery life indicated; estimate it */
 				estimate_timeleft(&cur_info);
 			}

@@ -19,6 +19,8 @@ some improvements in wmbattery:
     for some Sony laptops that do not have apm support.
   - ACPI support, including multiple battery support and battery charging
     completion countdown timer.
+  - Can make its own estimatess of time remaining or time until full
+    charge, even if APM does not.
 
 Conversely, here are some reasons to stick with wmapm:
 
