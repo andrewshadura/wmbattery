@@ -6,11 +6,23 @@
 #include <X11/extensions/shape.h>
 #include <stdarg.h>
 
-#ifdef __FreeBSD__
+#ifdef HAVE_SYS_FILE
 #include <sys/file.h>
+#endif
+
+#ifdef HAVE_SYS_IOCTL
 #include <sys/ioctl.h>
+#endif
+
+#ifdef HAVE_MACHINE_APM_BIOS	/* for FreeBSD */
 #include <machine/apm_bios.h>
-#else
+#endif
+
+#ifdef HAVE_APMVAR		/* for NetBSD and OpenBSD */
+#include <apmvar.h>
+#endif
+
+#ifdef HAVE_GETOPT
 #include <getopt.h>
 #endif
 
@@ -25,7 +37,7 @@ Display *display;
 GC NormalGC;
 int pos[2] = {0, 0};
 
-#ifdef __FreeBSD__
+#if defined (__FreeBSD__) || defined (__NetBSD__) || defined (__OpenBSD__)
 #define APM_STATUS_FILE "/dev/apm"
 #else
 #define APM_STATUS_FILE "/proc/apm"
@@ -45,26 +57,41 @@ void error(const char *fmt, ...) {
   	exit(1);
 }
 
-#ifdef __FreeBSD__
+#if defined (HAVE_MACHINE_APM_BIOS) || defined (HAVE_APMVAR) /* BSD */
 
 int apm_read(apm_info *i) {
 	int fd;
+#ifdef HAVE_MACHINE_APM_BIOS /* FreeBSD */
+	unsigned long request = APMIO_GETINFO;
 	struct apm_info info;
+#else /* NetBSD or OpenBSD */
+	unsigned long request= APM_IOC_GETPOWER;
+	struct apm_power_info info;
+#endif
 
 	if ((fd = open(apm_status_file, O_RDONLY)) == -1) {
     		return 0;
 	}
-	if (ioctl(fd, APMIO_GETINFO, &info) == -1) {
+	if (ioctl(fd, request, &info) == -1) {
 		return 0;
 	}
 	close(fd);
 
+#ifdef HAVE_MACHINE_APM_BIOS /* FreeBSD */
 	i->ac_line_status = info.ai_acline;
 	i->battery_status = info.ai_batt_stat;
 	i->battery_flags = (info.ai_batt_stat == 3) ? 8: 0;
 	i->battery_percentage = info.ai_batt_life;
 	i->battery_time = info.ai_batt_time;
 	i->using_minutes = 0;
+#else /* NetBSD or OpenBSD */
+	i->ac_line_status = info.ac_state;
+	i->battery_status = info.battery_state;
+	i->battery_flags = (info.battery_state == 3) ? 8: 0;
+	i->battery_percentage = info.battery_life;
+	i->battery_time = info.minutes_left;
+	i->using_minutes = 1;
+#endif
 	
 	return 1;
 }

@@ -1,3 +1,10 @@
+wmbattery (1.14) unstable; urgency=low
+
+  * OpenBSD port by Kevin Christen <christen@ix.netcom.com>
+  * Uses autoconf.
+
+ -- Joey Hess <joeyh@debian.org>  Mon, 26 Feb 2001 22:06:55 -0800
+
 wmbattery (1.13) unstable; urgency=low
 
   * Added support for using files other than /proc/apm, via a -f switch.

@@ -1,9 +1,9 @@
 Source: wmbattery
 Section: x11
 Priority: extra
-Build-Depends: debhelper, xlib6g-dev, xlibs-dev
+Build-Depends: debhelper (>= 3), xlib6g-dev, xlibs-dev, autoconf
 Maintainer: Joey Hess <joeyh@debian.org>
-Standards-Version: 3.1.1.1
+Standards-Version: 3.5.2.0
 
 Package: wmbattery
 Architecture: any

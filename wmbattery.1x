@@ -1,4 +1,4 @@
-.TH WMBATTERY 1 "25 December 98"
+.TH WMBATTERY 1 "24 February 2001"
 .SH NAME
 WMBATTERY \- Dockable APM/Battery Monitor
 .SH SYNOPSIS
@@ -7,45 +7,53 @@ WMBATTERY \- Dockable APM/Battery Monitor
 .SH DESCRIPTION
 .PP
 .B wmbattery
-is an APM/Battery Monitor.  It is used to visually display and
-the APM/Battery status from the system's BIOS via the Linux kernel.
+is an APM/Battery Monitor.  It is used to visually display the
+APM/Battery status from the system's BIOS.
 .PP
-Currently, wmbattery is only supported on Linux platforms as it interprets
-APM/Battery information directly from /proc/apm.  wmbattery is dockable
-using WindowMaker and AfterStep window-managers; under other
-window-managers, wmbattery appears as a nicely-sized 64x64 application.
+Currently,
+.B wmbattery
+is supported on Linux (where it reads APM information from /proc/apm),
+and Free/Net/OpenBSD (where it reads /dev/apm).
+.B wmbattery
+is dockable using WindowMaker and AfterStep window-managers; under
+other window-managers
+.B wmbattery
+appears as a nicely-sized 64x64 application.
 .PP
-wmbattery displays the status of your laptop's battery in a small icon.
-This includes if it is plugged in, if the battery is charging, how many
-minutes of battery life remain, battery life remaining (with both a 
-percentage and a graph), and battery status (high - green, low - yellow, 
-or critical - red).
+.B wmbattery
+displays the status of your laptop's battery in a small icon.  This
+includes if it is plugged in, if the battery is charging, how many
+minutes of battery life remain, battery life remaining (with both a
+percentage and a graph), and battery status (high - green, low -
+yellow, or critical - red).
 .SH "ELEMENTS OF THE DISPLAY"
-The wmbattery display consists of these elements:
+The
+.B wmbattery
+display consists of these elements:
 .TP
 .B dial
-The large dial at the top of the display shows percentage of battery life
-remaining, in hours and minutes.
+The large dial at the top of the display shows battery life remaining.
 .TP
 .B time display
-The time display, right under and in the middle of the dial, shows how much
-time your battery is estimated to last under the current use conditions.
+The time display, right under and in the middle of the dial, shows how
+many hours and minutes of battery life is estimated to remain at the
+current rate of use.
 .TP
 .B power cord
-The small icon of a power cord plug, in the bottom left, tells if your
+The small icon of a power cord plug, in the bottom left, tells if the
 laptop is plugged into wall power. If so, it will be lit.
 .TP
 .B charging indicator
-The lightning bolt icon, to the right of the plug, tells if your battery is
-being charged. If so, it will be lit and will connect the plug to your
-battery.
+The lightning bolt icon, to the right of the plug, tells if the
+battery is being charged. If so it will be lit and will connect the
+plug to the battery.
 .TP
 .B battery icon
-The battery icon, to the right of the lighting bolt, tells what percentage of
-battery time you have remaining; the same value show on the dial. Also, if
-your battery is removed, the battery icon will be dimmed out. If your
-computer is low on power, the battery will turn yellow; if your computer is
-critically low on power and about to die because of it, it will turn red.
+The battery icon, to the right of the lighting bolt, shows the
+percentage of battery time. If the battery is removed the icon will be
+dimmed. If the computer is low on power the battery will turn yellow;
+if the computer is critically low on power and about to die because of
+it, it will turn red.
 .SH OPTIONS
 .TP
 .B \-h
@@ -55,9 +63,10 @@ Display list of command-line options.
 Use the designated X display.
 .TP
 .B \-g +x+y
-Specify geometry to start up at. This specifies position, not size.
+Specify geometry. This specifies position, not size.
+.TP
 .B \-f [apmfile]
-Use the specified file instead of /proc/apm (and /dev/apm on BSD systems).
+Use the specified file instead of /proc/apm (or /dev/apm on BSD systems).
 Useful on Apple Macintosh powerbooks which use the pmud for apm handling.
 .SH AUTHOR
 Joey Hess <joey@kitenet.net>, based on wmapm by
