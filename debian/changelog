@@ -1,3 +1,10 @@
+wmbattery (2.01) unstable; urgency=low
+
+  * Corrected minus sign in bigfont to proper faux-lcd appearance. Also fixed
+    offset slightly.
+
+ -- Joey Hess <joeyh@debian.org>  Fri,  5 Apr 2002 23:34:38 -0500
+
 wmbattery (2.00) unstable; urgency=low
 
   * Added ACPI support, including battery change detection, and battery
