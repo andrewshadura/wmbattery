@@ -1,3 +1,20 @@
+wmbattery (2.19) unstable; urgency=low
+
+  * Use the proper new-style acpi string when looking for ac adaptor status.
+    Closes: #220039
+  * Remove the hack I added for my old picturebook, as it causes bad results
+    on systems that label a fully charged battery's charging rate as
+    unknown and state as charging.
+  * Base battery charge calculations for ACPI on design capacity, instead of
+    last full capacity. Some batteries may exceed previous last full on 
+    their next charging, and this also lets you see when you have a damaged
+    battery that is not fully charging.
+  * If acpi battery charging state is unknown, but the rate is 0,
+    then the battery is charged and on AC power, and the unknown state can
+    be ignored. Analysis and patch by "TeXitoi".
+
+ -- Joey Hess <joeyh@debian.org>  Mon, 17 Nov 2003 20:28:56 -0500
+
 wmbattery (2.18) unstable; urgency=low
 
   * Sort devices returned by readdir in acpi, since the order can be random.
