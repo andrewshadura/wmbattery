@@ -412,7 +412,7 @@ int main(int argc, char *argv[]) {
 			delay = 1;
 	}
 	/* Check for ACPI support. */
-	else if (acpi_supported()) {
+	else if (acpi_supported() && acpi_batt_count > 0) {
 		if (battnum > acpi_batt_count || battnum < 1) {
 			error("There %s only %i batter%s, and you asked for number %i.",
 					acpi_batt_count == 1 ? "is" : "are",

@@ -167,13 +167,11 @@ int acpi_supported (void) {
 	char *version;
 
 	if (chdir("/proc/acpi") == -1) {
-		perror("chdir /proc/acpi");
 		return 0;
 	}
 	
 	version = get_acpi_value("info", "ACPI-CA Version:");
 	if (version == NULL) {
-		fprintf(stderr, "Unable to find ACPI version.\n");
 		return 0;
 	}
 	if (atoi(version) < ACPI_VERSION) {
@@ -181,20 +179,11 @@ int acpi_supported (void) {
 				version, ACPI_VERSION);
 		return 0;
 	}
-
-	if (! find_batteries()) {
-		fprintf(stderr, "No ACPI batteries found!");
-		return 0;
-	}
-
-	if (! find_ac_adapters()) {
-		fprintf(stderr, "No ACPI power adapter found!");
-	}
-
+	
+	find_batteries();
+	find_ac_adapters();
 #if ACPI_THERMAL
-	if (! find_thermal()) {
-		fprintf(stderr, "No ACPI thermal information found.");
-	}
+	find_thermal();
 #endif
 	
 	return 1;
@@ -245,6 +234,13 @@ int acpi_read (int battery, apm_info *info) {
 		if (state) {
 			if (state[0] == 'd') { /* discharging */
 				info->battery_status = BATTERY_STATUS_CHARGING;
+				/* In a serious fit of stupidity, Linux's
+				 * ACPI output uses a *second* State: line
+				 * when the battery is critically low.
+				 * Detect that. */
+				if (state && state[0] == 'c') { /* critical */
+					info->battery_status = BATTERY_STATUS_CRITICAL;
+				}
 			}
 			else if (state[0] == 'c' && state[1] == 'h') { /* charging */
 				info->battery_status = BATTERY_STATUS_CHARGING;
@@ -260,8 +256,9 @@ int acpi_read (int battery, apm_info *info) {
 			else if (state[0] == 'c') { /* not charging, so must be critical */
 				info->battery_status = BATTERY_STATUS_CRITICAL;
 			}
-			else
+			else {
 				fprintf(stderr, "unknown battery state: %s\n", state);
+			}
 		}
 		else {
 			/* Battery state unknown. */

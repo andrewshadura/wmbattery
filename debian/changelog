@@ -1,3 +1,16 @@
+wmbattery (2.04) unstable; urgency=low
+
+  * Work around stupid ACPI output format  bug. Critical battery detection
+    now works.
+
+ -- Joey Hess <joeyh@debian.org>  Mon,  8 Apr 2002 22:49:43 -0400
+
+wmbattery (2.03) unstable; urgency=low
+
+  * Better error reporting.
+
+ -- Joey Hess <joeyh@debian.org>  Sun,  7 Apr 2002 22:57:17 -0400
+
 wmbattery (2.02) unstable; urgency=medium
 
   * Improved acpi interface (also used for procmeter3 module now).
