@@ -8,6 +8,10 @@
 #include <stdarg.h>
 #include <signal.h>
 #include <apm.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <errno.h>
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -15,6 +19,7 @@
 
 #include "wmbattery.h"
 #include "mask.xbm"
+#include "sonypi.h"
 
 Pixmap images[NUM_IMAGES];
 Window root, iconwin, win;
@@ -23,6 +28,10 @@ XpmIcon icon;
 Display *display;
 GC NormalGC;
 int pos[2] = {0, 0};
+
+int try_sonypi = 0;
+int use_sonypi = 0;
+signed int spicfd = -1;
 
 void error(const char *fmt, ...) {
   	va_list arglist;
@@ -82,7 +91,7 @@ char *parse_commandline(int argc, char *argv[]) {
 	extern char *optarg;
 	
   	while (c != -1) {
-  		c=getopt(argc, argv, "hd:g:f:");
+  		c=getopt(argc, argv, "hd:g:f:s");
 		switch (c) {
 		  case 'h':
 			printf("\nUsage: wmbattery [options]\n");
@@ -106,6 +115,9 @@ char *parse_commandline(int argc, char *argv[]) {
                           }
                         }
                         break;
+		  case 's':
+			try_sonypi = 1;
+			break;
       		}
     	}
   
@@ -315,8 +327,8 @@ void recalc_window(apm_info cur_info) {
         	digit = min_left % 10;
         	draw_letter(digit,BIGFONT,MINUTES_ONES_OFFSET);
       	}
-
-      	/* Show percent remaining */
+      	
+	/* Show percent remaining */
       	if (cur_info.battery_percentage >= 0) {
         	digit = cur_info.battery_percentage / 10;
        		if (digit == 10) {
@@ -334,6 +346,11 @@ void recalc_window(apm_info cur_info) {
 	  	draw_letter(10,SMALLFONT,PERCENT_OFFSET);
 	  	draw_letter(10,BIGFONT,COLON_OFFSET);
 	}
+	
+	if (cur_info.battery_time < 0) {
+		/* TIme remaining is unknown, so dim the colon. */
+	  	draw_letter(10,BIGFONT,COLON_OFFSET);
+	}
 
 	redraw_window();
 }
@@ -341,9 +358,15 @@ void recalc_window(apm_info cur_info) {
 void alarmhandler(int sig) {
 	apm_info cur_info;
 	
-	if (apm_read(&cur_info) != 0)
-		error("Cannot read APM information.");
-	
+	if (! use_sonypi) {
+		if (apm_read(&cur_info) != 0)
+			error("Cannot read APM information.");
+	}
+	else {
+		if (sonypi_read(&cur_info) != 0)
+			error("Cannot read sonypi information.");
+	}
+		
 	/* If APM data changes redraw and wait for next update */
 	/* Always redraw if the status is critical, to make it blink. */
 	if (!apm_change(&cur_info) || cur_info.battery_status == 2)
@@ -352,12 +375,90 @@ void alarmhandler(int sig) {
 	alarm(DELAY);
 }
 
+inline int sonypi_ioctl(int ioctlno, void *param) {
+	if (ioctl(spicfd, ioctlno, param) < 0)
+		return 0;
+	return 1;
+}
+
+/* Read battery info from sonypi device and shove it into an apm_into
+ * struct. */
+int sonypi_read (apm_info *info) {
+	__u8 batflags;
+	__u16 cap, rem;
+	int havebatt = 0;
+	
+	info->using_minutes = info->battery_flags = 0;
+	
+	if (! sonypi_ioctl(SONYPI_IOCGBATFLAGS, &batflags)) {
+		return 1;
+	}
+
+	info->ac_line_status = (batflags & SONYPI_BFLAGS_AC) != 0;
+	if (batflags & SONYPI_BFLAGS_B1) {
+		if (! sonypi_ioctl(SONYPI_IOCGBAT1CAP, &cap))
+			return 1;
+		if (! sonypi_ioctl(SONYPI_IOCGBAT1REM, &rem))
+			return 1;
+		havebatt = 1;
+	}
+	else if (batflags & SONYPI_BFLAGS_B2) {
+		/* Not quite right, if there is a second battery I should
+		 * probably merge the two somehow.. */
+		if (! sonypi_ioctl(SONYPI_IOCGBAT2CAP, &cap))
+			return 1;
+		if (! sonypi_ioctl(SONYPI_IOCGBAT2REM, &rem))
+			return 1;
+		havebatt = 1;
+	}
+	else {
+		info->battery_percentage = 0;
+		info->battery_status = -1; /* no battery */
+	}
+	
+	if (havebatt) {
+		info->battery_percentage = 100 * rem / cap;
+		/* Guess at whether the battery is charging. */
+		if (info->battery_percentage < 99 && info->ac_line_status == 1) {
+			info->battery_flags = info->battery_flags | 8;
+			info->battery_status = 3; /* charging */
+		}
+		else {
+			/* Guess at battery status. */
+			if (info->battery_percentage > 10)
+				info->battery_status = 0; /* full */
+			else if (info->battery_percentage > 5)
+				info->battery_status = 1; /* medium */
+			else 
+				info->battery_status = 2; /* critical */
+		}
+	}
+	
+	/* Sadly, there is no way to estimate this. */
+	info->battery_time = -1;
+	
+	return 0;
+}
+
 int main(int argc, char *argv[]) {
 	make_window(parse_commandline(argc, argv), argc ,argv);
 
 	/*  Check for APM support (returns 0 on success). */
-	if (apm_exists() != 0)
-		error("No APM support in kernel.");
+	if (apm_exists() != 0) {
+		if (try_sonypi) {
+			/* Try to open the sonypi device. */
+			if ((spicfd = open("/dev/sonypi", O_RDWR)) == -1) {
+				error("Unable to open /dev/sonypi: %s",
+						strerror(errno));
+			}
+			else {
+				use_sonypi = 1;
+			}
+		}
+		else {
+			error("No APM support in kernel.");
+		}
+	}
 	
 	load_images();
 	

@@ -15,6 +15,8 @@ some improvements in wmbattery:
   - It consumes a little less memory.
   - Uses only 10 colors.
   - You can run in on a different display via -d (broken in wmapm).
+  - Support for getting battery status from the sonypi driver instead of APM,
+    for some Sony laptops that do not have apm support.
 
 Conversely, here are some reasons to stick with wmapm:
 

@@ -1,4 +1,4 @@
-.TH WMBATTERY 1 "24 February 2001"
+.TH WMBATTERY 1 "04 April 2002"
 .SH NAME
 WMBATTERY \- Dockable APM/Battery Monitor
 .SH SYNOPSIS
@@ -7,13 +7,15 @@ WMBATTERY \- Dockable APM/Battery Monitor
 .SH DESCRIPTION
 .PP
 .B wmbattery
-is an APM/Battery Monitor.  It is used to visually display the
-APM/Battery status from the system's BIOS.
+is a battery monitor.  It is used to visually display the system's battery 
+status.
 .PP
 Currently,
 .B wmbattery
 is supported on Linux (where it reads APM information from /proc/apm),
-and Free/Net/OpenBSD (where it reads /dev/apm).
+and Free/Net/OpenBSD (where it reads /dev/apm). It also has special support
+for some Sony laptops that lack APM support, but do have a sonypi driver in
+linux that can report on the battery status.
 .B wmbattery
 is dockable using WindowMaker and AfterStep window-managers; under
 other window-managers
@@ -64,6 +66,11 @@ Use the designated X display.
 .TP
 .B \-g +x+y
 Specify geometry. This specifies position, not size.
+.TP
+.B \-s
+If APM cannot be initialized, don't give up, but instead use the sonypi driver
+and /dev/sonypi. This is useful on some Sony laptops that lack APM support.
+It is inferior to APM.
 .SH AUTHOR
 Joey Hess <joey@kitenet.net>, based on wmapm by
 Chris D. Faulhaber <jedgar@speck.ml.org>

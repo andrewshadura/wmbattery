@@ -1,3 +1,11 @@
+wmbattery (1.23) unstable; urgency=low
+
+  * Added support for querying for battery status via the sonypi driver, for
+    sony laptops that do not have apm support. This is a stopgap until linux
+    gets full ACPI support.
+
+ -- Joey Hess <joeyh@debian.org>  Thu,  4 Apr 2002 10:25:31 -0500
+
 wmbattery (1.22) unstable; urgency=low
 
   * Converted to use libapm, instead of the hacked up old version of it

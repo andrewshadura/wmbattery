@@ -1,9 +1,5 @@
 * The dial doesn't fill up/drain out very prettily. Add some code to special
   case things so it looks better.
-* Can /proc/apm be kept open and rewound?
-  - Yes, it can -- libapm.a does this. I could use it in linux, though it
-    would increase executrable size some. Would be good though as I'd have
-    less code to maintain.
 * Make it load up the mask from file, not #include it.
 * Allow user-settable colors, like asclock does.
 * Allow the user to define when it should display different battery colors.
