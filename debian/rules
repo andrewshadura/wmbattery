@@ -57,7 +57,7 @@ binary-arch: build install
 	dh_builddeb
 
 VERSION=$(shell expr "`dpkg-parsechangelog 2>/dev/null |grep Version:`" : '.*Version: \(.*\)')
-dist:
+installhook:
 	dpkg-buildpackage -rfakeroot -tc
 	if [ `hostname` = 'kite' ] ; then \
 		cp ../wmbattery_$(VERSION).tar.gz ../../public; \
