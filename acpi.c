@@ -247,6 +247,8 @@ int acpi_read (int battery, apm_info *info) {
 				info->ac_line_status = 1;
 				info->battery_flags = info->battery_flags | BATTERY_FLAGS_CHARGING;
 				info->battery_time = -1 * (float) (acpi_batt_capacity[battery] - pcap) / (float) rate * 60;
+				if (abs(info->battery_time) < 0.5)
+					info->battery_time = 0;
 			}
 			else if (state[0] == 'o') { /* ok */
 				/* charged, on ac power */

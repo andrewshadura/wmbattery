@@ -1,3 +1,9 @@
+wmbattery (2.05) unstable; urgency=low
+
+  * (acpi) don't display the rather wacky "- :0" on an almost full battery
+
+ -- Joey Hess <joeyh@debian.org>  Tue,  9 Apr 2002 23:19:35 -0400
+
 wmbattery (2.04) unstable; urgency=low
 
   * Work around stupid ACPI output format  bug. Critical battery detection
