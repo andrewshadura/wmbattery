@@ -1,3 +1,10 @@
+wmbattery (2.18) unstable; urgency=low
+
+  * Sort devices returned by readdir in acpi, since the order can be random.
+    Closes: #204721
+
+ -- Joey Hess <joeyh@debian.org>  Wed, 13 Aug 2003 01:45:55 -0400
+
 wmbattery (2.17) unstable; urgency=low
 
   * Make acpi code put -1 in the time remaining field if the "present rate"

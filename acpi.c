@@ -17,6 +17,7 @@
 
 #include "acpi.h"
 
+#define PROC_ACPI "/proc/acpi"
 #define ACPI_MAXITEM 8
 
 int acpi_batt_count = 0;
@@ -141,6 +142,13 @@ int get_acpi_batt_capacity(int battery) {
 	return cap;
 }
 
+/* Comparison function for qsort. */
+int _acpi_compare_strings (const void *a, const void *b) {
+	const char **pa = (const char **)a;
+	const char **pb = (const char **)b;
+	return strcasecmp((const char *)*pa, (const char *)*pb);
+}
+
 /* Find something (batteries, ac adpaters, etc), and set up a string array
  * to hold the paths to info and status files of the things found. Must be 
  * in /proc/acpi to call this. Returns the number of items found. */
@@ -148,28 +156,38 @@ int find_items (char *itemname, char infoarray[ACPI_MAXITEM][128],
 		                char statusarray[ACPI_MAXITEM][128]) {
 	DIR *dir;
 	struct dirent *ent;
-	int count = 0;
+	int num_devices=0;
+	int i;
+	char **devices = malloc(ACPI_MAXITEM * sizeof(char *));
 	
 	dir = opendir(itemname);
 	if (dir == NULL)
 		return 0;
-
 	while ((ent = readdir(dir))) {
 		if (!strncmp(".", ent->d_name, 1) || 
 		    !strncmp("..", ent->d_name, 2))
 			continue;
 
-		sprintf(infoarray[count], "%s/%s/%s", itemname, ent->d_name,
-			acpi_labels[label_info]);
-		sprintf(statusarray[count], "%s/%s/%s", itemname, ent->d_name,
-			acpi_labels[label_status]);
-		count++;
-		if (count > ACPI_MAXITEM)
+		devices[num_devices]=strdup(ent->d_name);
+		num_devices++;
+		if (num_devices >= ACPI_MAXITEM)
 			break;
 	}
-
 	closedir(dir);
-	return count;
+	
+	/* Sort, since readdir can return in any order. /proc/does
+	 * sometimes list BATT2 before BATT1. */
+	qsort(devices, num_devices, sizeof(char *), _acpi_compare_strings);
+
+	for (i = 0; i < num_devices; i++) {
+		sprintf(infoarray[i], "%s/%s/%s", itemname, devices[i],
+			acpi_labels[label_info]);
+		sprintf(statusarray[i], "%s/%s/%s", itemname, devices[i],
+			acpi_labels[label_status]);
+		free(devices[i]);
+	}
+
+	return num_devices;
 }
 
 /* Find batteries, return the number, and set acpi_batt_count to it as well. */
@@ -216,7 +234,7 @@ int acpi_supported (void) {
 	char *version;
 	int num;
 
-	if (chdir("/proc/acpi") == -1) {
+	if (chdir(PROC_ACPI) == -1) {
 		return 0;
 	}
 	
