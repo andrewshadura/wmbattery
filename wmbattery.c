@@ -100,8 +100,8 @@ char *parse_commandline(int argc, char *argv[]) {
                         printf("\t-g +x+y\t\tposition of the window\n");
 			printf("\t-b num\t\tnumber of battery to display\n");
 			printf("\t-w secs\t\tseconds between updates\n");
-			printf("\t-l percent\t\tlow percentage\n");
-			printf("\t-c percent\t\tcritical percentage\n");
+			printf("\t-l percent\tlow percentage\n");
+			printf("\t-c percent\tcritical percentage\n");
                		exit(0);
 		 	break;
 		  case 'd':
