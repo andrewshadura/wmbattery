@@ -50,8 +50,7 @@ enum acpi_labels_items {
 	label_battery,
 	label_ac_adapter,
 	label_online,
-	label_unknown,
-	label_last_full_capacity,
+	label_design_capacity,
 	label_present,
 	label_remaining_capacity,
 	label_present_rate,
@@ -59,6 +58,7 @@ enum acpi_labels_items {
 #if ACPI_THERMAL
 	label_thermal,
 #endif
+	label_ac_state,
 };
 
 /* This is set to point to a list of strings used for the given acpi

@@ -39,8 +39,7 @@ char *acpi_labels_old[] = {
 	"battery",
 	"ac_adapter",
 	"on-line",
-	"unknown",
-	"Last Full Capacity:",
+	"Design Capacity:",
 	"Present:",
 	"Remaining Capacity:",
 	"Present Rate:",
@@ -48,6 +47,7 @@ char *acpi_labels_old[] = {
 #if ACPI_THERMAL
 	"thermal",
 #endif
+	"Status:",
 	NULL
 };
 
@@ -59,8 +59,7 @@ char *acpi_labels_20020214[] = {
 	"battery",
 	"ac_adapter",
 	"on-line",
-	"unknown",
-	"last full capacity:",
+	"design capacity:",
 	"present:",
 	"remaining capacity:",
 	"present rate:",
@@ -68,6 +67,7 @@ char *acpi_labels_20020214[] = {
 #if ACPI_THERMAL
 	"thermal_zone",
 #endif
+	"state:",
 	NULL
 };
 
@@ -128,10 +128,10 @@ char *get_acpi_value (const char *file, const char *key) {
 	return scan_acpi_value(buf, key);
 }
 
-/* Returns the last full capacity of a battery. */
+/* Returns the design capacity of a battery. */
 int get_acpi_batt_capacity(int battery) {
 	int cap;
-	char *caps=get_acpi_value(acpi_batt_info[battery], acpi_labels[label_last_full_capacity]);
+	char *caps=get_acpi_value(acpi_batt_info[battery], acpi_labels[label_design_capacity]);
 	if (caps == NULL)
 		cap=0; /* battery not present */
 	else
@@ -220,7 +220,7 @@ int find_thermal(void) {
 int on_ac_power (void) {
 	int i;
 	for (i = 0; i < acpi_ac_count; i++) {
-		if (strcmp(acpi_labels[label_online], get_acpi_value(acpi_ac_adapter_status[i], "Status:")) == 0)
+		if (strcmp(acpi_labels[label_online], get_acpi_value(acpi_ac_adapter_status[i], acpi_labels[label_ac_state])) == 0)
 			return 1;
 		else
 			return 0;
@@ -304,17 +304,10 @@ int acpi_read (int battery, apm_info *info) {
 				/* Time remaining unknown. */
 				info->battery_time = 0;
 			}
-			/* This is a hack for my picturebook. If
-			 * the battery is not present, ACPI still
-			 * says it is Present, but sets this to
-			 * unknown. I don't know if this is the
-			 * correct way to do it. */
-			else if (strcmp(rate_s, acpi_labels[label_unknown]) == 0) {
-				goto NOBATT;
-			}
 			else {
-				/* a zero in the file; time unknown so use
-				 * a negative one to indicate this */
+				/* a zero or unknown in the file; time 
+				 * unknown so use a negative one to
+				 * indicate this */
 				info->battery_time = -1;
 			}
 		}
@@ -340,6 +333,12 @@ int acpi_read (int battery, apm_info *info) {
 			else if (state[0] == 'c') { /* not charging, so must be critical */
 				info->battery_status = BATTERY_STATUS_CRITICAL;
 			}
+			else if (rate == 0) {
+				/* if rate is null, battery charged, on
+				 * ac power */
+				info->battery_status = BATTERY_STATUS_HIGH;
+				info->ac_line_status = 1;
+			}
 			else {
 				fprintf(stderr, "unknown battery state: %s\n", state);
 			}
@@ -359,7 +358,7 @@ int acpi_read (int battery, apm_info *info) {
 		}
 		
 		if (pcap) {
-			/* percentage = (current_capacity / last_full_capacity) * 100 */
+			/* percentage = (current_capacity / max capacity) * 100 */
 			info->battery_percentage = (float) pcap / (float) acpi_batt_capacity[battery] * 100;
 		}
 		else {
@@ -368,7 +367,6 @@ int acpi_read (int battery, apm_info *info) {
 
 	}
 	else {
-NOBATT:
 		info->battery_percentage = 0;
 		info->battery_time = 0;
 		info->battery_status = BATTERY_STATUS_ABSENT;
