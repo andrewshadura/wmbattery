@@ -1,7 +1,7 @@
 Source: wmbattery
 Section: x11
 Priority: extra
-Maintainer: Joey Hess <joeyh@master.debian.org>
+Maintainer: Joey Hess <joeyh@debian.org>
 Standards-Version: 3.0.1.1
 
 Package: wmbattery
