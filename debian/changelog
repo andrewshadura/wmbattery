@@ -1,3 +1,9 @@
+wmbattery (2.12) unstable; urgency=low
+
+  * Rebuild w/o /usr/doc link.
+
+ -- Joey Hess <joeyh@debian.org>  Fri, 15 Nov 2002 15:23:13 -0500
+
 wmbattery (2.11) unstable; urgency=low
 
   * Corrected inverted test to see if ac power is online, that was only called
