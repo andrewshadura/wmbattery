@@ -21,10 +21,10 @@ clean:
 	rm -f wmbattery wmbattery.o
 
 distclean: clean
-	rm -f config.status config.cache config.log makeinfo
+	rm -f config.status config.cache config.log makeinfo config.h
 
 dist: distclean
-	@if  [ -d $(srcdir)/CVS ]; then \
+	@if [ -d $(srcdir)/CVS ]; then \
 		echo "Run from exported sources to avoid distributing CVS files"; \
 	else \
 		cd $(srcdir) && autoconf && (cd .. && tar czvf wmbattery.tar.gz wmbattery); \
@@ -36,14 +36,10 @@ install: all
 	$(INSTALL_DATA) $(srcdir)/wmbattery.1x $(man1dir)/wmbattery.1x
 	$(INSTALL_DATA) $(srcdir)/*.xpm $(icondir)
 
+uninstall:
+	rm -rf $(bindir)/wmbattery $(man1dir)/wmbattery.1x $(icondir)
+
 wmbattery: wmbattery.o
 	$(CC) $(LDFLAGS) $(LIBS) wmbattery.o -o wmbattery
-
-uninstall:
-	rm -f $(bindir)/wmbattery
-	rm -f $(man1dir)/wmbattery.1
-	for xpm_file in *.xpm; do
-		rm -f $(icondir)/$${xpm_file}
-	done
 
 wmbattery.o: wmbattery.c wmbattery.h

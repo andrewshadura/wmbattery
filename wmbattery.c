@@ -1,3 +1,4 @@
+#include "config.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -6,23 +7,23 @@
 #include <X11/extensions/shape.h>
 #include <stdarg.h>
 
-#ifdef HAVE_SYS_FILE
+#ifdef HAVE_SYS_FILE_H
 #include <sys/file.h>
 #endif
 
-#ifdef HAVE_SYS_IOCTL
+#ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
 #endif
 
-#ifdef HAVE_MACHINE_APM_BIOS	/* for FreeBSD */
+#ifdef HAVE_MACHINE_APM_BIOS_H	/* for FreeBSD */
 #include <machine/apm_bios.h>
 #endif
 
-#ifdef HAVE_APMVAR		/* for NetBSD and OpenBSD */
-#include <apmvar.h>
+#ifdef HAVE_I386_APMVAR_H	/* for NetBSD and OpenBSD */
+#include <i386/apmvar.h>
 #endif
 
-#ifdef HAVE_GETOPT
+#ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
 
@@ -37,7 +38,7 @@ Display *display;
 GC NormalGC;
 int pos[2] = {0, 0};
 
-#if defined (__FreeBSD__) || defined (__NetBSD__) || defined (__OpenBSD__)
+#ifdef HAVE__DEV_APM
 #define APM_STATUS_FILE "/dev/apm"
 #else
 #define APM_STATUS_FILE "/proc/apm"
@@ -57,11 +58,11 @@ void error(const char *fmt, ...) {
   	exit(1);
 }
 
-#if defined (HAVE_MACHINE_APM_BIOS) || defined (HAVE_APMVAR) /* BSD */
+#if defined (HAVE_MACHINE_APM_BIOS_H) || defined (HAVE_I386_APMVAR_H) /* BSD */
 
 int apm_read(apm_info *i) {
 	int fd;
-#ifdef HAVE_MACHINE_APM_BIOS /* FreeBSD */
+#ifdef HAVE_MACHINE_APM_BIOS_H /* FreeBSD */
 	unsigned long request = APMIO_GETINFO;
 	struct apm_info info;
 #else /* NetBSD or OpenBSD */
@@ -77,7 +78,7 @@ int apm_read(apm_info *i) {
 	}
 	close(fd);
 
-#ifdef HAVE_MACHINE_APM_BIOS /* FreeBSD */
+#ifdef HAVE_MACHINE_APM_BIOS_H /* FreeBSD */
 	i->ac_line_status = info.ai_acline;
 	i->battery_status = info.ai_batt_stat;
 	i->battery_flags = (info.ai_batt_stat == 3) ? 8: 0;

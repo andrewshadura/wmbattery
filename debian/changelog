@@ -1,3 +1,10 @@
+wmbattery (1.16) unstable; urgency=low
+
+  * Another patch from Kevin, which allows removal of the
+    config.{sub,guess} files and does smarter detection.
+
+ -- Joey Hess <joeyh@debian.org>  Mon,  5 Mar 2001 19:49:36 -0800
+
 wmbattery (1.15) unstable; urgency=medium
 
   * Fixed icon search path.
