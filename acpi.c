@@ -51,8 +51,8 @@ char *acpi_labels_old[] = {
 };
 
 /* These are the strings used in ACPI in the 2.5 kernels, circa version
- * 20030109 */
-char *acpi_labels_20030109[] = {
+ * 20020214 */
+char *acpi_labels_20020214[] = {
 	"info",
 	"state",
 	"battery",
@@ -234,8 +234,8 @@ int acpi_supported (void) {
 				version, ACPI_VERSION);
 		return 0;
 	}
-	else if (num >= 20030109) {
-		acpi_labels = acpi_labels_20030109;
+	else if (num >= 20020214) {
+		acpi_labels = acpi_labels_20020214;
 	}
 	else {
 		acpi_labels = acpi_labels_old;

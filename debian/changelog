@@ -1,3 +1,10 @@
+wmbattery (2.14) unstable; urgency=low
+
+  * Set the cutoff point for old acpi to 20020214 (was 20020208).
+    Closes: #202083
+
+ -- Joey Hess <joeyh@debian.org>  Sun, 20 Jul 2003 13:44:59 +0200
+
 wmbattery (2.13) unstable; urgency=low
 
   * Added support for ACPI version 20030109 (2.5 kernel), and generally
