@@ -1,3 +1,18 @@
+wmbattery (2.00) unstable; urgency=low
+
+  * Added ACPI support, including battery change detection, and battery
+    charging time countdown timer.
+  * Added -w parameter to configure delay time.
+  * Added -c and -l parameters to allow user control of battery low/critical
+    percentages.
+  * Use constant defs from apm.h instead of nasty hardcoded numbers.
+  * Made -Wall clean.
+  * Reorg.
+  * Removed -s option, just fall back to SPIC if ACPI and APM are not
+    available.
+
+ -- Joey Hess <joeyh@debian.org>  Fri,  5 Apr 2002 12:53:18 -0500
+
 wmbattery (1.23) unstable; urgency=low
 
   * Added support for querying for battery status via the sonypi driver, for

@@ -6,7 +6,7 @@ prefix=@prefix@
 srcdir=@srcdir@
 
 CC=@CC@
-CFLAGS=@CFLAGS@
+CFLAGS=@CFLAGS@ -Wall
 CPPFLAGS=@CPPFLAGS@ -DICONDIR=\"$(icondir)\"
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -18,7 +18,7 @@ VPATH=@srcdir@
 all: wmbattery
 
 clean:
-	rm -f wmbattery wmbattery.o
+	rm -f wmbattery *.o
 
 distclean: clean
 	rm -f config.status config.cache config.log makeinfo config.h
@@ -39,7 +39,7 @@ install: all
 uninstall:
 	rm -rf $(bindir)/wmbattery $(man1dir)/wmbattery.1x $(icondir)
 
-wmbattery: wmbattery.o
-	$(CC) $(LDFLAGS) $(LIBS) wmbattery.o -o wmbattery
+wmbattery: wmbattery.o acpi.o sonypi.o
+	$(CC) $(LDFLAGS) $(LIBS) wmbattery.o acpi.o sonypi.o -o wmbattery
 
 wmbattery.o: wmbattery.c wmbattery.h

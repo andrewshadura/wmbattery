@@ -1,5 +1,3 @@
-#define DELAY 1 /* Delay between refreshes (in seconds) */
-
 typedef struct {
 	Pixmap pixmap;
 	Pixmap mask;
@@ -19,8 +17,8 @@ typedef struct image_info_type {
 #define SMALLFONT 0
 #define BIGFONT 1
 #define BATTERY_HIGH 2
-#define BATTERY_MEDIUM 3
-#define BATTERY_LOW 4
+#define BATTERY_LOW 3
+#define BATTERY_CRITICAL 4
 #define BATTERY_NONE 5
 #define BATTERY_BLINK 6
 #define UNPLUGGED 7

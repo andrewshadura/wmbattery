@@ -9,17 +9,15 @@ Package: wmbattery
 Architecture: any
 Depends: ${shlibs:Depends}
 Suggests: wmaker
-Description: Display laptop battery info, dockable in WindowMaker
- Wmbattery displays the status of your laptop's battery in a small icon.
+Description: display laptop battery info, dockable in WindowMaker
+ wmbattery displays the status of your laptop's battery in a small icon.
  This includes if it is plugged in, if the battery is charging, how many
- minutes of battery life remain, battery life remaining (with both a 
- percentage and a graph), and battery status (high - green, low - yellow, 
- or critical - red).
+ minutes of battery life remain, and battery status (high - green, low -
+ yellow, or critical - red).
  .
  There's nothing in the program that makes it require WindowMaker, except
  maybe the look. It can be docked in WindowMaker or AfterStep's dock.
  .
- To use this program you need to enable APM support for your kernel during
- configuration; the corresponding questions are in the 'Character devices'
- section. It will only work on laptops with an APM BIOS and on Sony laptops
- with the sonypi device.
+ wmbattery can use APM, ACPI, or even the SPIC that is in some Sony laptops.
+ With ACPI, it supports multi-battery machines, and can estimate how long
+ it will take the battery to finish charging.

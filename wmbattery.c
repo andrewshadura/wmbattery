@@ -8,10 +8,6 @@
 #include <stdarg.h>
 #include <signal.h>
 #include <apm.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <errno.h>
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -20,6 +16,7 @@
 #include "wmbattery.h"
 #include "mask.xbm"
 #include "sonypi.h"
+#include "acpi.h"
 
 Pixmap images[NUM_IMAGES];
 Window root, iconwin, win;
@@ -29,9 +26,13 @@ Display *display;
 GC NormalGC;
 int pos[2] = {0, 0};
 
-int try_sonypi = 0;
+int battnum = 1;
 int use_sonypi = 0;
-signed int spicfd = -1;
+int use_acpi = 1;
+int delay = 0;
+
+signed int low_pct = -1;
+signed int critical_pct = -1;
 
 void error(const char *fmt, ...) {
   	va_list arglist;
@@ -91,13 +92,17 @@ char *parse_commandline(int argc, char *argv[]) {
 	extern char *optarg;
 	
   	while (c != -1) {
-  		c=getopt(argc, argv, "hd:g:f:s");
+  		c=getopt(argc, argv, "hd:g:f:b:w:c:l:");
 		switch (c) {
 		  case 'h':
-			printf("\nUsage: wmbattery [options]\n");
+			printf("Usage: wmbattery [options]\n");
               		printf("\t-d <display>\tselects target display\n");
                		printf("\t-h\t\tdisplay this help\n");
                         printf("\t-g +x+y\t\tposition of the window\n");
+			printf("\t-b num\t\tnumber of battery to display\n");
+			printf("\t-w secs\t\tseconds between updates\n");
+			printf("\t-l percent\t\tlow percentage\n");
+			printf("\t-c percent\t\tcritical percentage\n");
                		exit(0);
 		 	break;
 		  case 'd':
@@ -115,8 +120,17 @@ char *parse_commandline(int argc, char *argv[]) {
                           }
                         }
                         break;
-		  case 's':
-			try_sonypi = 1;
+		  case 'b':
+			battnum = atoi(optarg);
+			break;
+		  case 'w':
+			delay = atoi(optarg);
+			break;
+		  case 'l':
+			low_pct = atoi(optarg);
+			break;
+		  case 'c':
+			critical_pct = atoi(optarg);
 			break;
       		}
     	}
@@ -256,25 +270,25 @@ void recalc_window(apm_info cur_info) {
 	
 	/* Display if it's plugged in. */
       	switch (cur_info.ac_line_status) {
-	  case 1:
+	  case AC_LINE_STATUS_ON:
 		draw_image(PLUGGED);
 		break;
        	  default:
 		draw_image(UNPLUGGED);
-      	}
-    
+	}
+	
       	/* Display the appropriate color battery. */
       	switch (cur_info.battery_status) {
-	  case 0: /* high */
-	  case 3: /* charging */
+	  case BATTERY_STATUS_HIGH:
+	  case BATTERY_STATUS_CHARGING:
 		draw_image(BATTERY_HIGH);
 		break;
-	  case 1:
-		draw_image(BATTERY_MEDIUM);
+	  case BATTERY_STATUS_LOW:
+		draw_image(BATTERY_LOW);
 		break;
-	  case 2: /* critical -- blinking red battery */
+	  case BATTERY_STATUS_CRITICAL: /* blinking red battery */
 		if (blinked)
-			draw_image(BATTERY_LOW);
+			draw_image(BATTERY_CRITICAL);
 		else
 			draw_image(BATTERY_BLINK);
 		blinked=!blinked;
@@ -284,7 +298,7 @@ void recalc_window(apm_info cur_info) {
       	}
 
       	/* Show if the battery is charging. */
-  	if (cur_info.battery_flags & 8) {
+  	if (cur_info.battery_flags & BATTERY_FLAGS_CHARGING) {
 		draw_image(CHARGING);
 	}
   	else {
@@ -311,22 +325,26 @@ void recalc_window(apm_info cur_info) {
 		   image_info[DIAL_DIM].y);
   
       	/* Show time left */
-      	if (cur_info.battery_time >= 0) {
-        	if (cur_info.using_minutes)
-          		time_left = cur_info.battery_time;
-        	else
-          		time_left = cur_info.battery_time / 60; 
-        	hour_left = time_left / 60;
-        	min_left = time_left % 60;
-        	digit = hour_left / 10;
-        	draw_letter(digit,BIGFONT,HOURS_TENS_OFFSET);
-        	digit = hour_left % 10;
-		draw_letter(digit,BIGFONT,HOURS_ONES_OFFSET);
-       		digit = min_left / 10;
-        	draw_letter(digit,BIGFONT,MINUTES_TENS_OFFSET);
-        	digit = min_left % 10;
-        	draw_letter(digit,BIGFONT,MINUTES_ONES_OFFSET);
-      	}
+        if (cur_info.using_minutes)
+        	time_left = cur_info.battery_time;
+        else
+        	time_left = cur_info.battery_time / 60; 
+	if (time_left < 0)
+		time_left = time_left * -1;
+        hour_left = time_left / 60;
+        min_left = time_left % 60;
+        digit = hour_left / 10;
+	if (cur_info.battery_time < 0)
+		/* Sacrifice a diget to display the minus sign. */
+		draw_letter(11, BIGFONT, HOURS_TENS_OFFSET);
+	else
+	        draw_letter(digit,BIGFONT,HOURS_TENS_OFFSET);
+        digit = hour_left % 10;
+	draw_letter(digit,BIGFONT,HOURS_ONES_OFFSET);
+       	digit = min_left / 10;
+        draw_letter(digit,BIGFONT,MINUTES_TENS_OFFSET);
+        digit = min_left % 10;
+        draw_letter(digit,BIGFONT,MINUTES_ONES_OFFSET);
       	
 	/* Show percent remaining */
       	if (cur_info.battery_percentage >= 0) {
@@ -346,11 +364,6 @@ void recalc_window(apm_info cur_info) {
 	  	draw_letter(10,SMALLFONT,PERCENT_OFFSET);
 	  	draw_letter(10,BIGFONT,COLON_OFFSET);
 	}
-	
-	if (cur_info.battery_time < 0) {
-		/* TIme remaining is unknown, so dim the colon. */
-	  	draw_letter(10,BIGFONT,COLON_OFFSET);
-	}
 
 	redraw_window();
 }
@@ -358,7 +371,11 @@ void recalc_window(apm_info cur_info) {
 void alarmhandler(int sig) {
 	apm_info cur_info;
 	
-	if (! use_sonypi) {
+	if (use_acpi) {
+		if (acpi_read(battnum, &cur_info) != 0)
+			error("Cannot read ACPI information.");
+	}
+	else if (! use_sonypi) {
 		if (apm_read(&cur_info) != 0)
 			error("Cannot read APM information.");
 	}
@@ -367,99 +384,57 @@ void alarmhandler(int sig) {
 			error("Cannot read sonypi information.");
 	}
 		
+	/* Override the battery status? */
+	if ((low_pct > -1 || critical_pct > -1) && 
+	    cur_info.ac_line_status != AC_LINE_STATUS_ON) {
+		if (cur_info.battery_percentage <= critical_pct)
+			cur_info.battery_status = BATTERY_STATUS_CRITICAL;
+		else if (cur_info.battery_percentage <= low_pct)
+			cur_info.battery_status = BATTERY_STATUS_LOW;
+		else
+			cur_info.battery_status = BATTERY_STATUS_HIGH;
+	}
+	
 	/* If APM data changes redraw and wait for next update */
 	/* Always redraw if the status is critical, to make it blink. */
-	if (!apm_change(&cur_info) || cur_info.battery_status == 2)
+	if (!apm_change(&cur_info) || cur_info.battery_status == BATTERY_STATUS_CRITICAL)
 		recalc_window(cur_info);
 
-	alarm(DELAY);
-}
-
-inline int sonypi_ioctl(int ioctlno, void *param) {
-	if (ioctl(spicfd, ioctlno, param) < 0)
-		return 0;
-	return 1;
-}
-
-/* Read battery info from sonypi device and shove it into an apm_into
- * struct. */
-int sonypi_read (apm_info *info) {
-	__u8 batflags;
-	__u16 cap, rem;
-	int havebatt = 0;
-	
-	info->using_minutes = info->battery_flags = 0;
-	
-	if (! sonypi_ioctl(SONYPI_IOCGBATFLAGS, &batflags)) {
-		return 1;
-	}
-
-	info->ac_line_status = (batflags & SONYPI_BFLAGS_AC) != 0;
-	if (batflags & SONYPI_BFLAGS_B1) {
-		if (! sonypi_ioctl(SONYPI_IOCGBAT1CAP, &cap))
-			return 1;
-		if (! sonypi_ioctl(SONYPI_IOCGBAT1REM, &rem))
-			return 1;
-		havebatt = 1;
-	}
-	else if (batflags & SONYPI_BFLAGS_B2) {
-		/* Not quite right, if there is a second battery I should
-		 * probably merge the two somehow.. */
-		if (! sonypi_ioctl(SONYPI_IOCGBAT2CAP, &cap))
-			return 1;
-		if (! sonypi_ioctl(SONYPI_IOCGBAT2REM, &rem))
-			return 1;
-		havebatt = 1;
-	}
-	else {
-		info->battery_percentage = 0;
-		info->battery_status = -1; /* no battery */
-	}
-	
-	if (havebatt) {
-		info->battery_percentage = 100 * rem / cap;
-		/* Guess at whether the battery is charging. */
-		if (info->battery_percentage < 99 && info->ac_line_status == 1) {
-			info->battery_flags = info->battery_flags | 8;
-			info->battery_status = 3; /* charging */
-		}
-		else {
-			/* Guess at battery status. */
-			if (info->battery_percentage > 10)
-				info->battery_status = 0; /* full */
-			else if (info->battery_percentage > 5)
-				info->battery_status = 1; /* medium */
-			else 
-				info->battery_status = 2; /* critical */
-		}
-	}
-	
-	/* Sadly, there is no way to estimate this. */
-	info->battery_time = -1;
-	
-	return 0;
+	alarm(delay);
 }
 
 int main(int argc, char *argv[]) {
 	make_window(parse_commandline(argc, argv), argc ,argv);
 
 	/*  Check for APM support (returns 0 on success). */
-	if (apm_exists() != 0) {
-		if (try_sonypi) {
-			/* Try to open the sonypi device. */
-			if ((spicfd = open("/dev/sonypi", O_RDWR)) == -1) {
-				error("Unable to open /dev/sonypi: %s",
-						strerror(errno));
-			}
-			else {
-				use_sonypi = 1;
-			}
-		}
-		else {
-			error("No APM support in kernel.");
-		}
+	if (apm_exists() == 0) {
+		if (! delay)
+			delay = 1;
 	}
-	
+	/* Check for ACPI support. */
+	else if (acpi_supported()) {
+		if (battnum > batt_count || battnum < 1) {
+			error("There %s only %i batter%s, and you asked for number %i.",
+					batt_count == 1 ? "is" : "are",
+					batt_count,
+					batt_count == 1 ? "y" : "ies",
+					battnum);
+		}
+		use_acpi = 1;
+		if (! delay)
+			delay = 3; /* sigh */
+	}
+	else if (sonypi_supported()) {
+		use_sonypi = 1;
+		low_pct = 10;
+		critical_pct = 5;
+		if (! delay)
+			delay = 1;
+	}
+	else {
+		error("No APM, ACPI, or SPIC support in kernel.");
+	}
+		
 	load_images();
 	
 	signal(SIGALRM, alarmhandler);

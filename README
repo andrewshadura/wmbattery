@@ -1,12 +1,12 @@
-Wmbattery displays the status of your laptop's battery in a small icon. This
+wmbattery displays the status of your laptop's battery in a small icon. This
 includes if it is plugged in, if the battery is charging, how many minutes
 of battery life remain, battery life remaining (with both a percentage and a
 graph), and battery status (high - green, low - yellow, or critical - red).
 
-Wmbattery is based heavily on wmapm by Chris D. Faulhaber <jedgar@speck.ml.org>
+wmbattery is based on wmapm by Chris D. Faulhaber <jedgar@speck.ml.org>
 -- see the copyright file for more information.
 
-Wmapm is a nice program - why have I modified it into wmbattery? Here are
+wmapm is a nice program - why have I modified it into wmbattery? Here are
 some improvements in wmbattery:
 
   - Improved icon layout. I crammed the same information into less space
@@ -17,6 +17,8 @@ some improvements in wmbattery:
   - You can run in on a different display via -d (broken in wmapm).
   - Support for getting battery status from the sonypi driver instead of APM,
     for some Sony laptops that do not have apm support.
+  - ACPI support, including multiple battery support and battery charging
+    completion countdown timer.
 
 Conversely, here are some reasons to stick with wmapm:
 

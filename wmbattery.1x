@@ -1,21 +1,19 @@
-.TH WMBATTERY 1 "04 April 2002"
+.TH WMBATTERY 1 "05 April 2002"
 .SH NAME
-WMBATTERY \- Dockable APM/Battery Monitor
+wmbattery \- dockable battery monitor
 .SH SYNOPSIS
 .B wmbattery
-[-h] [-d display]
+[options]
 .SH DESCRIPTION
 .PP
 .B wmbattery
 is a battery monitor.  It is used to visually display the system's battery 
 status.
 .PP
-Currently,
 .B wmbattery
-is supported on Linux (where it reads APM information from /proc/apm),
-and Free/Net/OpenBSD (where it reads /dev/apm). It also has special support
-for some Sony laptops that lack APM support, but do have a sonypi driver in
-linux that can report on the battery status.
+can get battery information using APM, ACPI, or the SPIC controller in some
+Sony laptops. You need to build your kernel with support for at least one
+of these for the program to work.
 .B wmbattery
 is dockable using WindowMaker and AfterStep window-managers; under
 other window-managers
@@ -40,6 +38,10 @@ The large dial at the top of the display shows battery life remaining.
 The time display, right under and in the middle of the dial, shows how
 many hours and minutes of battery life is estimated to remain at the
 current rate of use.
+.P
+If ACPI is used and battery is charging, the time display will instead show
+a countdown (starting with a minus sign) of how many hours and minutes it is
+estimated to take until the battery is fully charged.
 .TP
 .B power cord
 The small icon of a power cord plug, in the bottom left, tells if the
@@ -61,16 +63,30 @@ it, it will turn red.
 .B \-h
 Display list of command-line options.
 .TP
-.B \-d [display]
+.B \-w secs
+Pause this many seconds between updates. Defaults to 1 for APM and 3 for
+ACPI (since querying ACPI takes quite a bit more CPU power).
+.TP
+.B \-d display
 Use the designated X display.
 .TP
 .B \-g +x+y
 Specify geometry. This specifies position, not size.
 .TP
-.B \-s
-If APM cannot be initialized, don't give up, but instead use the sonypi driver
-and /dev/sonypi. This is useful on some Sony laptops that lack APM support.
-It is inferior to APM.
+.B \-b battnum
+Display the given battery. Only of use with ACPI on systems with more than
+one battery. The default is to display the first battery found.
+.TP
+.B \-l percent
+Set the percentaqge at which the battery is considered to be running low. By
+default, this percentage is determined by APM or ACPI, and you shouldn't
+need to set it. If you set this, you should probably also set the -c
+switch.
+.TP
+.B \-c percent
+Set the percentaqge at which the battery is considered to be critically low.
+By default, this percentage is determined by APM or ACPI, and you shouldn't
+need to set it. If you set this, you should probably also set the -l
+switch.
 .SH AUTHOR
-Joey Hess <joey@kitenet.net>, based on wmapm by
-Chris D. Faulhaber <jedgar@speck.ml.org>
+Joey Hess <joey@kitenet.net>

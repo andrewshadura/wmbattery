@@ -1,3 +1,6 @@
+int sonypi_supported (void);
+int sonypi_read (apm_info *info);
+
 /* There's no good place to get these constants, so I must define them
  * myself. */
 

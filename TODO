@@ -2,4 +2,3 @@
   case things so it looks better.
 * Make it load up the mask from file, not #include it.
 * Allow user-settable colors, like asclock does.
-* Allow the user to define when it should display different battery colors.
