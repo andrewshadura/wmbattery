@@ -63,7 +63,7 @@ installhook:
 	cp debian/changelog $(DIR)/CHANGES
 	echo -n $(VERSION) > $(DIR)/LATEST-VERSION-IS
 	rm -f $(DIR)/*.tar.gz
-	ln -s /home/joey/debian/unstable/wmbattery_$(VERSION).tar.gz wmbattery_$(VERSION).tar.gz
+	ln -s /home/joey/debian/unstable/wmbattery_$(VERSION).tar.gz $(DIR)
 
 binary: binary-indep binary-arch
 .PHONY: build clean binary-indep binary-arch binary install
