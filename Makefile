@@ -26,7 +26,7 @@ wmbattery: wmbattery.o acpi.o sonypi.o
 
 wmbattery.o: wmbattery.c wmbattery.h
 
-configure: configure.in
+configure: configure.ac
 	autoconf
 
 config.status: configure

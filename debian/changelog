@@ -1,3 +1,13 @@
+wmbattery (2.10) unstable; urgency=low
+
+  * Deal with acpi putting nothing but "Present: no" in the info file for the
+    second battery of a thinkpad. This was with kernel 2.4.19-pre10.
+    Closes: #149715
+  * Moved DEB_BUILD_OPTIONS out of makeinfo.
+  * Updated to new autoconf.
+
+ -- Joey Hess <joeyh@debian.org>  Tue, 11 Jun 2002 22:51:45 -0400
+
 wmbattery (2.09) unstable; urgency=low
 
   * Moved makefile stuff out of makeinfo, so it is just definitions.

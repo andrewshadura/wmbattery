@@ -1,11 +1,22 @@
 #!/usr/bin/make -f
 
+# DEB_BUILD_OPTIONS suport
+INSTALL_PROGRAM=install
+ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
+INSTALL_PROGRAM += -s
+endif
+
+CFLAGS=-O2 -Wall
+ifneq (,$(findstring debug,$(DEB_BUILD_OPTIONS)))
+CFLAGS += -g
+endif
+
 build: build-stamp
 build-stamp:
 	dh_testdir
 	autoconf
 	./configure --mandir=$(shell pwd)/debian/wmbattery/usr/share/man \
-		--prefix=/usr
+		--prefix=/usr CFLAGS="$(CFLAGS)"
 	$(MAKE)
 	touch build-stamp
 
@@ -21,7 +32,8 @@ install: build
 	dh_testroot
 	dh_clean -k
 	dh_installdirs
-	$(MAKE) prefix=debian/wmbattery/usr install
+	$(MAKE) prefix=debian/wmbattery/usr \
+		INSTALL_PROGRAM="$(INSTALL_PROGRAM)" install
 
 # Build architecture-independent files here.
 binary-indep: build install

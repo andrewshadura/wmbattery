@@ -88,7 +88,11 @@ char *get_acpi_value (const char *file, const char *key) {
 /* Returns the last full capacity of a battery. */
 int get_acpi_batt_capacity(int battery) {
 	int cap;
-	cap = atoi(get_acpi_value(acpi_batt_info[battery], "Last Full Capacity:"));
+	char *caps=get_acpi_value(acpi_batt_info[battery], "Last Full Capacity:");
+	if (caps == NULL)
+		cap=0; /* battery not present */
+	else
+		cap=atoi(caps);
 	/* This is ACPI's broken way of saying that there is no battery. */
 	if (cap == 655350)
 		return 0;

@@ -14,8 +14,3 @@ INSTALL_DATA	= @INSTALL_DATA@
 INSTALL_PROGRAM	= @INSTALL_PROGRAM@
 LDFLAGS		= @LDFLAGS@
 LIBS		= @LIBS@
-
-# DEB_BUILD_OPTIONS suport, to control binary stripping.
-ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
-INSTALL_PROGRAM += -s
-endif
