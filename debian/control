@@ -1,7 +1,7 @@
 Source: wmbattery
 Section: x11
 Priority: extra
-Build-Depends: debhelper, xlib6g-dev, xpm4g-dev
+Build-Depends: debhelper, xlib6g-dev, xlibs-dev
 Maintainer: Joey Hess <joeyh@debian.org>
 Standards-Version: 3.1.1.1
 
