@@ -1,3 +1,9 @@
+wmbattery (2.08) unstable; urgency=low
+
+  * Don't crash if there is a /proc/acpi/ with no status file.
+
+ -- Joey Hess <joeyh@debian.org>  Fri, 31 May 2002 21:35:06 -0400
+
 wmbattery (2.07) unstable; urgency=low
 
   * Added symbolic apm info constants to "apm.h", in case they are

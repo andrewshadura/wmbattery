@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <sys/ioctl.h>
 #include "apm.h"
 #include <sys/types.h>

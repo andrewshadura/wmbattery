@@ -81,6 +81,7 @@ inline char *scan_acpi_value (const char *buf, const char *key) {
  * from a file, slow if called many times. */
 char *get_acpi_value (const char *file, const char *key) {
 	char *buf = get_acpi_file(file);
+	if (! buf) return NULL;
 	return scan_acpi_value(buf, key);
 }
 
