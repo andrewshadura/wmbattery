@@ -58,7 +58,7 @@ binary-arch: build install
 	dh_builddeb
 
 VERSION=$(shell expr "`dpkg-parsechangelog 2>/dev/null |grep Version:`" : '.*Version: \(.*\)')
-DIR=/home/www/kitenet.net/programs/wmbattery
+DIR=/home/web/kitenet.net/programs/wmbattery
 installhook:
 	cp debian/changelog $(DIR)/CHANGES
 	echo -n $(VERSION) > $(DIR)/LATEST-VERSION-IS
