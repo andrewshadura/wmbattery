@@ -6,19 +6,6 @@ typedef struct {
   	XpmAttributes attributes;
 } XpmIcon;
 
-typedef struct {
-	const char driver_version[10];
-	int apm_version_major;
-   	int apm_version_minor;
-   	int apm_flags;
-   	int ac_line_status;
-   	int battery_status;
-   	int battery_flags;
-   	int battery_percentage;
-   	int battery_time;
-   	int using_minutes;
-} apm_info;
-
 typedef struct image_info_type {
   	const char* filename;
   	const int width;
@@ -27,10 +14,6 @@ typedef struct image_info_type {
   	const int y;
   	const int charwidth;
 } image_info_type;
-
-#ifndef APM_32_BIT_SUPPORT
-#define APM_32_BIT_SUPPORT      0x0002
-#endif
 
 /* Assign reference numbers to all images that are loaded. */
 #define SMALLFONT 0

@@ -1,9 +1,8 @@
-Wmbattery is copyright (C) 1998, 2001 by Joey Hess <joey@kitenet.net>
+Wmbattery is copyright (C) 1998, 2001, 2002 by Joey Hess <joey@kitenet.net>
 
 Wmbattery uses code and images from the following sources:
 
   wmapm	 - (C) 1998 Chris D. Faulhaber <jedgar@speck.ml.org>
-  libapm - Rik Faith <faith@cs.unc.edu>
   wmmon and wmgeneral - Martijm Pieterse <pieterse@xs4all.nl> and
   			Antoine Nulle <warp@xs4all.nl> 
 

@@ -4,9 +4,6 @@ AC_CONFIG_HEADER(config.h)
 
 AC_CONFIG_AUX_DIR(autoconf)
 
-dnl Checks for the apm device other than /proc/apm.
-AC_CHECK_FILES(/dev/apm)
-
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL
@@ -27,21 +24,14 @@ dnl Checks for libraries.
 AC_CHECK_LIB(X11, XOpenDisplay)
 AC_CHECK_LIB(Xext, XShapeCombineMask)
 AC_CHECK_LIB(Xpm, XpmReadFileToPixmap)
+AC_CHECK_LIB(apm, apm_read)
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(unistd.h)
 AC_CHECK_HEADERS(X11/xpm.h)
 AC_CHECK_HEADERS(X11/extensions/shape.h)
-AC_CHECK_HEADERS(sys/file.h)
-AC_CHECK_HEADERS(sys/ioctl.h)
 AC_CHECK_HEADERS(getopt.h)
-
-dnl FreeBSD needs apm_bios.h
-AC_CHECK_HEADERS(machine/apm_bios.h)
-
-dnl NetBSD and OpenBSD need apmvar.h
-AC_CHECK_HEADERS(i386/apmvar.h)
+AC_CHECK_HEADERS(apm.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST

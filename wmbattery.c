@@ -7,22 +7,7 @@
 #include <X11/extensions/shape.h>
 #include <stdarg.h>
 #include <signal.h>
-
-#ifdef HAVE_SYS_FILE_H
-#include <sys/file.h>
-#endif
-
-#ifdef HAVE_SYS_IOCTL_H
-#include <sys/ioctl.h>
-#endif
-
-#ifdef HAVE_MACHINE_APM_BIOS_H	/* for FreeBSD */
-#include <machine/apm_bios.h>
-#endif
-
-#ifdef HAVE_I386_APMVAR_H	/* for NetBSD and OpenBSD */
-#include <i386/apmvar.h>
-#endif
+#include <apm.h>
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -39,14 +24,6 @@ Display *display;
 GC NormalGC;
 int pos[2] = {0, 0};
 
-#ifdef HAVE__DEV_APM
-#define APM_STATUS_FILE "/dev/apm"
-#else
-#define APM_STATUS_FILE "/proc/apm"
-#endif
-
-char *apm_status_file = APM_STATUS_FILE;
-
 void error(const char *fmt, ...) {
   	va_list arglist;
   
@@ -58,129 +35,6 @@ void error(const char *fmt, ...) {
   
   	exit(1);
 }
-
-#if defined (HAVE_MACHINE_APM_BIOS_H) || defined (HAVE_I386_APMVAR_H) /* BSD */
-
-int apm_read(apm_info *i) {
-	int fd;
-#ifdef HAVE_MACHINE_APM_BIOS_H /* FreeBSD */
-	unsigned long request = APMIO_GETINFO;
-	struct apm_info info;
-#else /* NetBSD or OpenBSD */
-	unsigned long request= APM_IOC_GETPOWER;
-	struct apm_power_info info;
-#endif
-
-	if ((fd = open(apm_status_file, O_RDONLY)) == -1) {
-    		return 0;
-	}
-	if (ioctl(fd, request, &info) == -1) {
-		return 0;
-	}
-	close(fd);
-
-#ifdef HAVE_MACHINE_APM_BIOS_H /* FreeBSD */
-	i->ac_line_status = info.ai_acline;
-	i->battery_status = info.ai_batt_stat;
-	i->battery_flags = (info.ai_batt_stat == 3) ? 8: 0;
-	i->battery_percentage = info.ai_batt_life;
-	i->battery_time = info.ai_batt_time;
-	i->using_minutes = 0;
-#else /* NetBSD or OpenBSD */
-	i->ac_line_status = info.ac_state;
-	i->battery_status = info.battery_state;
-	i->battery_flags = (info.battery_state == 3) ? 8: 0;
-	i->battery_percentage = info.battery_life;
-	i->battery_time = info.minutes_left;
-	i->using_minutes = 1;
-#endif
-	
-	return 1;
-}
-
-#else /* Linux */
-
-int apm_read(apm_info *i) {
-	FILE *str;
-  	char units[10];
-	char buffer[100];
-
-	if (!(str = fopen(apm_status_file, "r")))
-    		return 0;
-	fgets(buffer, sizeof(buffer) - 1, str);
-	buffer[sizeof(buffer) - 1] = '\0';
-	sscanf(buffer, "%s %d.%d %x %x %x %x %d%% %d %s\n",
-	       (char *)i->driver_version,
-	       &i->apm_version_major,
-	       &i->apm_version_minor,
-	       &i->apm_flags,
-	       &i->ac_line_status,
-	       &i->battery_status,
-		       &i->battery_flags,
-	       &i->battery_percentage,
-	       &i->battery_time,
-	       units);
-	i->using_minutes = !strncmp(units, "min", 3) ? 1 : 0;
-	if (i->driver_version[0] == 'B') { /* old style.  argh. */
-		strcpy((char *)i->driver_version, "pre-0.7");
-		i->apm_version_major  = 0;
-		i->apm_version_minor  = 0;
-		i->apm_flags          = 0;
-		i->ac_line_status     = 0xff;
-		i->battery_status     = 0xff;
-		i->battery_flags      = 0xff;
-		i->battery_percentage = -1;
-		i->battery_time       = -1;
-		i->using_minutes      = 1;
-		sscanf(buffer, "BIOS version: %d.%d",
-			&i->apm_version_major, &i->apm_version_minor);
-		fgets(buffer, sizeof(buffer) - 1, str);
-		sscanf(buffer, "Flags: 0x%02x", &i->apm_flags);
-		if (i->apm_flags & APM_32_BIT_SUPPORT) {
-			fgets(buffer, sizeof(buffer) - 1, str);
-			fgets(buffer, sizeof(buffer) - 1, str);
-			if (buffer[0] != 'P') {
-				if (!strncmp(buffer+4, "off line", 8))
-					i->ac_line_status = 0;
-				else if (!strncmp(buffer+4, "on line", 7))
-	  				i->ac_line_status = 1;
-				else if (!strncmp(buffer+4, "on back", 7))
-	  				i->ac_line_status = 2;
-				fgets(buffer, sizeof(buffer) - 1, str);
-				if (!strncmp(buffer+16, "high", 4))
-	  				i->battery_status = 0;
-				else if (!strncmp(buffer+16, "low", 3))
-	  				i->battery_status = 1;
-				else if (!strncmp(buffer+16, "crit", 4))
-	  				i->battery_status = 2;
-				else if (!strncmp(buffer+16, "charg", 5))
-	  				i->battery_status = 3;
-				fgets(buffer, sizeof(buffer) - 1, str);
-				if (strncmp(buffer+14, "unknown", 7))
-	  				i->battery_percentage = atoi(buffer + 14);
-				if (i->apm_version_major >= 1 && i->apm_version_minor >= 1) {
-	  				fgets(buffer, sizeof(buffer) - 1, str);
-	  				sscanf(buffer, "Battery flag: 0x%02x", &i->battery_flags);
-	  				fgets(buffer, sizeof(buffer) - 1, str);
-	  				if (strncmp(buffer+14, "unknown", 7))
-	    					i->battery_time = atoi(buffer + 14);
-				}
-      			}
-    		}
-	}
-
-       	/*
-	 * Fix possible kernel bug -- percentage
-         * set to 0xff (==255) instead of -1.
-	 */
-  	if (i->battery_percentage > 100)
-    		i->battery_percentage = -1;
-  
-  	fclose(str);
-  	return 1;
-}
-
-#endif /* linux */
 
 int apm_change(apm_info *cur) {
 	static int ac_line_status = 0, battery_status = 0, battery_flags = 0,
@@ -201,14 +55,6 @@ int apm_change(apm_info *cur) {
 	using_minutes = cur->using_minutes;
 
 	return i;
-}
-
-int apm_exists() {
-	apm_info i;
-  
-        if (access(apm_status_file, R_OK))
-        	return 0;
-	return apm_read(&i);
 }
 
 /* Load up the images this program uses. */
@@ -243,7 +89,6 @@ char *parse_commandline(int argc, char *argv[]) {
               		printf("\t-d <display>\tselects target display\n");
                		printf("\t-h\t\tdisplay this help\n");
                         printf("\t-g +x+y\t\tposition of the window\n");
-			printf("\t-f file\t\tapm status file to use instead of " APM_STATUS_FILE "\n\n");
                		exit(0);
 		 	break;
 		  case 'd':
@@ -261,9 +106,6 @@ char *parse_commandline(int argc, char *argv[]) {
                           }
                         }
                         break;
-		  case 'f':
-			apm_status_file = strdup(optarg);
-			break;
       		}
     	}
   
@@ -499,7 +341,7 @@ void recalc_window(apm_info cur_info) {
 void alarmhandler(int sig) {
 	apm_info cur_info;
 	
-	if (! apm_read(&cur_info))
+	if (apm_read(&cur_info) != 0)
 		error("Cannot read APM information.");
 	
 	/* If APM data changes redraw and wait for next update */
@@ -513,8 +355,8 @@ void alarmhandler(int sig) {
 int main(int argc, char *argv[]) {
 	make_window(parse_commandline(argc, argv), argc ,argv);
 
-	/*  Check for APM support */
-	if (! apm_exists())
+	/*  Check for APM support (returns 0 on success). */
+	if (apm_exists() != 0)
 		error("No APM support in kernel.");
 	
 	load_images();

@@ -1,3 +1,16 @@
+wmbattery (1.22) unstable; urgency=low
+
+  * Converted to use libapm, instead of the hacked up old version of it
+    used before. This probably breaks wmbattery on the BSD's, for now. The
+    correct fix for the BSD's will be to get support for their apm
+    implementations into libapm. To that end, I have filed a bug with all the
+    code I ripped out.
+  * The -f option also had to be removed. If libapm does not work right on
+    systems that needed that flag it's probably a bug in the library.
+  * Closes: #100027
+
+ -- Joey Hess <joeyh@debian.org>  Sun, 24 Feb 2002 12:47:53 -0500
+
 wmbattery (1.21) unstable; urgency=low
 
   * Typo, Closes: #125485
