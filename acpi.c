@@ -209,7 +209,7 @@ int acpi_read (int battery, apm_info *info) {
 	info->battery_flags = 0;
 	info->using_minutes = 1;
 	
-	/* Work out if the battery is present, and what pqercentage of full
+	/* Work out if the battery is present, and what percentage of full
 	 * it is and how much time is left. */
 	if (strcmp(scan_acpi_value(buf, "Present:"), "yes") == 0) {
 		int pcap = scan_acpi_num(buf, "Remaining Capacity:");
@@ -233,19 +233,16 @@ int acpi_read (int battery, apm_info *info) {
 			else if (strcmp(rate_s, "unknown") == 0) {
 				goto NOBATT;
 			}
+			else {
+				/* a zero in the file; time unknown */
+				info->battery_time = 0;
+			}
 		}
 
 		state = scan_acpi_value(buf, "State:");
 		if (state) {
 			if (state[0] == 'd') { /* discharging */
 				info->battery_status = BATTERY_STATUS_CHARGING;
-				/* In a serious fit of stupidity, Linux's
-				 * ACPI output uses a *second* State: line
-				 * when the battery is critically low.
-				 * Detect that. */
-				if (state && state[0] == 'c') { /* critical */
-					info->battery_status = BATTERY_STATUS_CRITICAL;
-				}
 			}
 			else if (state[0] == 'c' && state[1] == 'h') { /* charging */
 				info->battery_status = BATTERY_STATUS_CHARGING;
