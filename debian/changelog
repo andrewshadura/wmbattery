@@ -1,3 +1,9 @@
+wmbattery (1.18) unstable; urgency=low
+
+  * Autoconf 2.50 demands an absolute --mandir=
+
+ -- Joey Hess <joeyh@debian.org>  Thu, 24 May 2001 15:04:23 -0400
+
 wmbattery (1.17) unstable; urgency=low
 
   * Patch from Edward Betts <edward@debian.org> to make the icon redraw
