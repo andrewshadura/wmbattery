@@ -7,6 +7,8 @@
 #include <X11/extensions/shape.h>
 #include <stdarg.h>
 #include <signal.h>
+#include <time.h>
+#include <errno.h>
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -29,6 +31,7 @@ int battnum = 1;
 int use_sonypi = 0;
 int use_acpi = 0;
 int delay = 0;
+int always_estimate_remaining = 0;
 
 signed int low_pct = -1;
 signed int critical_pct = -1;
@@ -66,6 +69,62 @@ int apm_change(apm_info *cur) {
 	return i;
 }
 
+/* Calculate battery estimate */
+void estimate_timeleft(apm_info *cur_info) {
+	/* Time of the last estimate */
+	static time_t estimate_time = 0;
+	/* Estimated time left */
+	static time_t estimate = 0;
+	/* Time when we last noticed a battery level change */
+	static time_t battery_change_time = 0;
+	/* The previous estimation we had before the battery level changed */
+	static time_t prev_estimate = 0;
+	/* Percentage at the last estimate */
+	static short percent = 0;
+
+	time_t t;
+	int interval;
+
+	errno = 0;
+	if (time(&t) == ((time_t)-1) && errno != 0)
+		goto estim_values;
+	
+	/* No change: decrease estimate */
+	if (percent == cur_info->battery_percentage) {
+		estimate -= t - estimate_time;
+		estimate_time = t;
+		if (estimate < 0)
+			estimate = 0;
+		goto estim_values;
+	}
+
+	/* The battery was charged: reset counters */
+	if (percent < cur_info->battery_percentage) {
+		percent = cur_info->battery_percentage;
+		battery_change_time = t;
+		estimate = 0;
+		estimate_time = t;
+		prev_estimate = 0;
+		goto estim_values;
+	}
+
+	/* The battery level decreased: calculate estimate based
+	 * on decrease speed and previous estimate */
+	estimate_time = t;
+	interval = estimate_time - battery_change_time;
+	prev_estimate = estimate;
+	battery_change_time = estimate_time;
+	estimate = cur_info->battery_percentage * interval 
+		   / (percent - cur_info->battery_percentage);
+	percent = cur_info->battery_percentage;
+	if (prev_estimate > 0)
+		estimate = (estimate * 2 + prev_estimate) / 3;
+
+estim_values:
+	cur_info->battery_time = estimate;
+	cur_info->using_minutes = 0;
+}
+
 /* Load up the images this program uses. */
 void load_images() {
   	int x;
@@ -91,7 +150,7 @@ char *parse_commandline(int argc, char *argv[]) {
 	extern char *optarg;
 	
   	while (c != -1) {
-  		c=getopt(argc, argv, "hd:g:f:b:w:c:l:");
+  		c=getopt(argc, argv, "hd:g:f:b:w:c:l:r");
 		switch (c) {
 		  case 'h':
 			printf("Usage: wmbattery [options]\n");
@@ -102,6 +161,7 @@ char *parse_commandline(int argc, char *argv[]) {
 			printf("\t-w secs\t\tseconds between updates\n");
 			printf("\t-l percent\tlow percentage\n");
 			printf("\t-c percent\tcritical percentage\n");
+			printf("\t-r\t\testimate remaining time\n");
                		exit(0);
 		 	break;
 		  case 'd':
@@ -131,6 +191,8 @@ char *parse_commandline(int argc, char *argv[]) {
 		  case 'c':
 			critical_pct = atoi(optarg);
 			break;
+		  case 'r':
+			always_estimate_remaining = 1;
       		}
     	}
   
@@ -227,12 +289,12 @@ void flush_expose(Window w) {
 }
 
 void redraw_window() {
-  	flush_expose(iconwin);
   	XCopyArea(display, images[FACE], iconwin, NormalGC, 0, 0,
 		  image_info[FACE].width, image_info[FACE].height, 0,0);
-  	flush_expose(win);
+  	flush_expose(iconwin);
   	XCopyArea(display, images[FACE], win, NormalGC, 0, 0, 
 		  image_info[FACE].width, image_info[FACE].height, 0,0);
+  	flush_expose(win);
 }
 
 /*
@@ -377,16 +439,26 @@ void alarmhandler(int sig) {
 		if (apm_read(&cur_info) != 0)
 			error("Cannot read APM information.");
 		/* Apm uses negative numbers here to indicate error or
-		 * missing battery or something. I use it for time
-		 * remaining in ACPI, so.. */
-		if (cur_info.battery_time < 0)
-			cur_info.battery_time = 0;
+		 * missing battery or something. */
+		if (cur_info.battery_time < 0) {
+			if (cur_info.ac_line_status == AC_LINE_STATUS_ON) {
+				cur_info.battery_time = 0;
+			}
+			else if (! always_estimate_remaining) {
+				/* No battery life indicated; estimate it */
+				estimate_timeleft(&cur_info);
+			}
+		}
 	}
 	else {
 		if (sonypi_read(&cur_info) != 0)
 			error("Cannot read sonypi information.");
 	}
-		
+	
+	/* Always calculate remaining lifetime? */
+	if (always_estimate_remaining)
+		estimate_timeleft(&cur_info);
+	
 	/* Override the battery status? */
 	if ((low_pct > -1 || critical_pct > -1) && 
 	    cur_info.ac_line_status != AC_LINE_STATUS_ON) {

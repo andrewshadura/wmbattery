@@ -2,3 +2,4 @@
   case things so it looks better.
 * Make it load up the mask from file, not #include it.
 * Allow user-settable colors, like asclock does.
+* Improve the battery lifetime estimation algo.

@@ -1,4 +1,4 @@
-.TH WMBATTERY 1 "05 April 2002"
+.TH WMBATTERY 1
 .SH NAME
 wmbattery \- dockable battery monitor
 .SH SYNOPSIS
@@ -90,5 +90,11 @@ Set the percentage at which the battery is considered to be critically low.
 By default, this percentage is determined by APM or ACPI, and you shouldn't
 need to set it. If you set this, you should probably also set the -l
 switch.
+.TP
+.B \-r
+wmbattery contains code for estimating the time remaining before discharge,
+and this code is used if no other source of this informaton is available.
+This switch makes wmbattery use its time remaining estimation code even
+if some other estimate of time remaining is available.
 .SH AUTHOR
 Joey Hess <joey@kitenet.net>

@@ -1,3 +1,13 @@
+wmbattery (2.15) unstable; urgency=low
+
+  * Patch from Hugo Haas <hugo@larve.net> to change when the icon is
+    refreshed for less latency.
+  * Patch from Hugo Haas to have wmbattery do its own time left estimates
+    if that info is not available from the machine.
+  * Add -r switch to force wmbattery to estimate the time left.
+
+ -- Joey Hess <joeyh@debian.org>  Sun,  3 Aug 2003 00:00:09 -0400
+
 wmbattery (2.14) unstable; urgency=low
 
   * Set the cutoff point for old acpi to 20020214 (was 20020208).
