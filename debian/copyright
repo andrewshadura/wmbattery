@@ -1,6 +1,6 @@
-Wmbattery is copyright (C) 1998-2002 by Joey Hess <joey@kitenet.net>
+wmbattery is copyright (C) 1998-2002 by Joey Hess <joey@kitenet.net>
 
-Wmbattery uses code and images from the following sources:
+wmbattery uses code and images from the following sources:
 
   wmapm	 - (C) 1998 Chris D. Faulhaber <jedgar@speck.ml.org>
   wmmon and wmgeneral - Martijm Pieterse <pieterse@xs4all.nl> and
@@ -25,3 +25,7 @@ The following copyright applies to this package:
  You should have received a copy of the GNU General Public License along
  with this program; if not, write to the Free Software Foundation, Inc.,
  59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
+
+On Debian systems the complete text of the GPL is in
+/usr/share/common-licenses/GPL
+
