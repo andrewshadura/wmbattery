@@ -20,6 +20,32 @@ This includes if it is plugged in, if the battery is charging, how many
 minutes of battery life remain, battery life remaining (with both a 
 percentage and a graph), and battery status (high - green, low - yellow, 
 or critical - red).
+.SH "ELEMENTS OF THE DISPLAY"
+The wmbattery display consists of these elements:
+.TP
+.B dial
+The large dial at the top of the display shows percentage of battery life
+remaining, in hours and minutes.
+.TP
+.B time display
+The time display, right under and in the middle of the dial, shows how much
+time your battery is estimated to last under the current use conditions.
+.TP
+.B power cord
+The small icon of a power cord plug, in the bottom left, tells if your
+laptop is plugged into wall power. If so, it will be lit.
+.TP
+.B charging indicator
+The lightning bolt icon, to the right of the plug, tells if your battery is
+being charged. If so, it will be lit and will connect the plug to your
+battery.
+.TP
+.B battery icon
+The battery icon, to the right of the lighting bolt, tells what percentage of
+battery time you have remaining; the same value show on the dial. Also, if
+your battery is removed, the battery icon will be dimmed out. If your
+computer is low on power, the battery will turn yellow; if your computer is
+critically low on power and about to die because of it, it will turn red.
 .SH OPTIONS
 .TP
 .B \-h
@@ -27,6 +53,9 @@ Display list of command-line options.
 .TP
 .B \-d [display]
 Use the designated X display.
+.TP
+.B \-g +x+y
+Specify geometry to start up at. This specifies position, not size.
 .SH AUTHOR
 Joey Hess <joey@kitenet.net>, based on wmapm by
 Chris D. Faulhaber <jedgar@speck.ml.org>

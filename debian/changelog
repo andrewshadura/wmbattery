@@ -1,3 +1,10 @@
+wmbattery (1.9) unstable; urgency=low
+
+  * Expanded the man page to detail exactly what all parts of the display
+    mean.
+
+ -- Joey Hess <joeyh@master.debian.org>  Mon, 13 Sep 1999 11:37:11 -0700
+
 wmbattery (1.8) unstable; urgency=low
 
   * Integrated with my build system.
