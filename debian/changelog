@@ -1,3 +1,10 @@
+wmbattery (2.06) unstable; urgency=low
+
+  * Deal with -1 time left from apm (no estimate).
+  * Never dim colon, fixes display bug.
+
+ -- Joey Hess <joeyh@debian.org>  Mon, 22 Apr 2002 12:30:35 -0400
+
 wmbattery (2.05) unstable; urgency=low
 
   * (acpi) don't display the rather wacky "- :0" on an almost full battery

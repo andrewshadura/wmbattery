@@ -324,6 +324,24 @@ void recalc_window(apm_info cur_info) {
 		   image_info[DIAL_DIM].x + x,
 		   image_info[DIAL_DIM].y);
   
+	/* Show percent remaining */
+      	if (cur_info.battery_percentage >= 0) {
+        	digit = cur_info.battery_percentage / 10;
+       		if (digit == 10) {
+		  	/* 11 is the `1' for the hundreds place. */
+	  		draw_letter(11,SMALLFONT,HUNDREDS_OFFSET);
+	  		digit=0;
+		}
+		draw_letter(digit,SMALLFONT,TENS_OFFSET);
+		digit = cur_info.battery_percentage % 10;
+		draw_letter(digit,SMALLFONT,ONES_OFFSET);
+      	}
+  	else {
+	  	/* There is no battery, so we need to dim out the
+		 * percent sign that is normally bright. */
+	  	draw_letter(10,SMALLFONT,PERCENT_OFFSET);
+	}
+
       	/* Show time left */
         if (cur_info.using_minutes)
         	time_left = cur_info.battery_time;
@@ -346,25 +364,6 @@ void recalc_window(apm_info cur_info) {
         digit = min_left % 10;
         draw_letter(digit,BIGFONT,MINUTES_ONES_OFFSET);
       	
-	/* Show percent remaining */
-      	if (cur_info.battery_percentage >= 0) {
-        	digit = cur_info.battery_percentage / 10;
-       		if (digit == 10) {
-		  	/* 11 is the `1' for the hundreds place. */
-	  		draw_letter(11,SMALLFONT,HUNDREDS_OFFSET);
-	  		digit=0;
-		}
-		draw_letter(digit,SMALLFONT,TENS_OFFSET);
-		digit = cur_info.battery_percentage % 10;
-		draw_letter(digit,SMALLFONT,ONES_OFFSET);
-      	}
-  	else {
-	  	/* There is no battery, so we need to dim out the
-		 * colon and percent sign that are normally bright. */
-	  	draw_letter(10,SMALLFONT,PERCENT_OFFSET);
-	  	draw_letter(10,BIGFONT,COLON_OFFSET);
-	}
-
 	redraw_window();
 }
 
@@ -378,6 +377,11 @@ void alarmhandler(int sig) {
 	else if (! use_sonypi) {
 		if (apm_read(&cur_info) != 0)
 			error("Cannot read APM information.");
+		/* Apm uses negative numbers here to indicate error or
+		 * missing battery or something. I use it for time
+		 * remaining in ACPI, so.. */
+		if (cur_info.battery_time < 0)
+			cur_info.battery_time = 0;
 	}
 	else {
 		if (sonypi_read(&cur_info) != 0)

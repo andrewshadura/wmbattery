@@ -105,7 +105,7 @@ int find_items (char *itemname, char infoarray[ACPI_MAXITEM][128],
 	
 	dir = opendir(itemname);
 	if (dir == NULL)
-		return -1;
+		return 0;
 
 	while ((ent = readdir(dir))) {
 		if (!strncmp(".", ent->d_name, 1) || 
