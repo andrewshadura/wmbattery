@@ -135,7 +135,3 @@ wmbattery (1.0) unstable; urgency=low
   * Made -d work to set the display.
 
  -- Joey Hess <joeyh@debian.org>  Fri, 25 Dec 1998 18:03:21 -0500
-
-Local variables:
-mode: debian-changelog
-End:
