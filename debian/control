@@ -1,0 +1,23 @@
+Source: wmbattery
+Section: x11
+Priority: extra
+Maintainer: Joey Hess <joeyh@master.debian.org>
+Standards-Version: 2.4.1.3
+
+Package: wmbattery
+Architecture: any
+Depends: ${shlibs:Depends}
+Suggests: wmaker
+Description: Display laptop battery info, dockable in Windowmaker
+ Wmbattery displays the status of your laptop's battery in a small icon.
+ This includes if it is plugged in, if the battery is charging, how many
+ minutes of battery life remain, battery life remaining (with both a 
+ percentage and a graph), and battery status (high - green, low - yellow, 
+ or critical - red).
+ .
+ There's nothing in the program that makes it require WindowMaker, except
+ maybe the look. It can be docked in WindowMaker or Afterstep's dock.
+ .
+ To use this program you need to enable APM support for your kernel during
+ configuration; the corresponding questions are in the 'Character devices'
+ section. It will only work on laptops with an APM BIOS.

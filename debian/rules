@@ -1,0 +1,76 @@
+#!/usr/bin/make -f
+# Sample debian/rules that uses debhelper. GNU copyright 1997 by Joey Hess.
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+build: build-stamp
+build-stamp:
+	dh_testdir
+	$(MAKE)
+	touch build-stamp
+
+clean:
+	dh_testdir
+	dh_testroot
+	rm -f build-stamp install-stamp
+	$(MAKE) clean
+	dh_clean
+
+install: install-stamp
+install-stamp: build-stamp
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+	$(MAKE) PREFIX=debian/tmp install
+	touch install-stamp
+
+# Build architecture-independent files here.
+binary-indep: build install
+# We have nothing to do by default.
+
+# Build architecture-dependent files here.
+binary-arch: build install
+#	dh_testversion
+	dh_testdir
+	dh_testroot
+	dh_installdocs TODO README
+	dh_installexamples
+	dh_installmenu
+#	dh_installemacsen
+#	dh_installinit
+	dh_installcron
+	dh_installmanpages
+#	dh_undocumented
+	dh_installchangelogs
+	dh_link
+	dh_strip
+	dh_compress
+	dh_fixperms
+	dh_suidregister
+#	dh_makeshlibs
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+VERSION=$(shell expr "`dpkg-parsechangelog 2>/dev/null |grep Version:`" : '.*Version: \(.*\)')
+dist:
+	dpkg-buildpackage -rfakeroot -tc
+	if [ `hostname` = 'kite' ] ; then \
+		cp ../wmbattery_$(VERSION).tar.gz ../../public; \
+		rm /home/ftp/pub/code/wmbattery/* || true; \
+		cp debian/changelog /home/pub/programs/wmbattery/CHANGES; \
+		echo $(VERSION) > /home/pub/programs/wmbattery/LATEST-VERSION-IS; \
+		cd /home/ftp/pub/code/wmbattery; \
+		ln -sf ../debian/wmbattery_$(VERSION).tar.gz wmbattery_$(VERSION).tar.gz; \
+		ln -sf ../debian/wmbattery_$(VERSION).tar.gz wmbattery.tar.gz; \
+	fi
+
+source diff:                                                                  
+	@echo >&2 'source and diff are obsolete - use dpkg-source -b'; false
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install dist

@@ -1,0 +1,20 @@
+wmbattery (1.0) unstable; urgency=low
+
+  * First release.
+  .
+  * Started with wmapm 1.2 sources. Gutted it and cleaned it up extensively
+    and turned it into wmbattery.
+  * Drew new faceplate and graphics.
+  * Converted manpage to refer to new program name.
+  * Reorganized source tree.
+  * Split single xpm up into lots of small xpms, loaded seperately.
+  * Cleaned up Makefile.
+  * Removed README, TODO, INSTALL, etc; I'll write my own.
+  * Parse command line with getopt.
+  * Made -d work to set the display.
+
+ -- Joey Hess <joeyh@master.debian.org>  Fri, 25 Dec 1998 18:03:21 -0500
+
+Local variables:
+mode: debian-changelog
+End:

@@ -1,0 +1,11 @@
+Quickstart: run "make test" to compile and test the program.
+
+To install, you should first edit the Makefile - pay special attention to
+the setting for ICONDIR, this is a directory the icons used by this program
+will go in and defaults to /usr/share/icons/wmbattery.
+
+If the Makefile looks ok, install it like so:
+	make
+	make install
+
+Note that you will need libxpm to build and use the program.

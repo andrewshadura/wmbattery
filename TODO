@@ -1,0 +1,7 @@
+* The dial doesn't fill up/drain out very prettily. Add some code to special
+  case things so it looks better.
+* Can /proc/apm be kept open and rewound?
+* Make it load up the mask from file, not #include it.
+* Allow user-settable colors, like asclock does.
+* Allow the user to define when it should display different battery colors.
+* Also, allow flashing battery to be turned on for critical.
