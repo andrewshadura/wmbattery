@@ -1,15 +1,7 @@
 #!/usr/bin/make -f
 
-# DEB_BUILD_OPTIONS suport
 INSTALL_PROGRAM=install
-ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
-INSTALL_PROGRAM += -s
-endif
-
-CFLAGS=-O2 -Wall
-ifneq (,$(findstring debug,$(DEB_BUILD_OPTIONS)))
-CFLAGS += -g
-endif
+CFLAGS=-O2 -Wall -g
 
 build: build-stamp
 build-stamp:
