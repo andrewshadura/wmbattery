@@ -1,3 +1,11 @@
+wmbattery (2.17) unstable; urgency=low
+
+  * Make acpi code put -1 in the time remaining field if the "present rate"
+    is 0. Closes: #204722
+  * Enable internal time estimate code in this case.
+
+ -- Joey Hess <joeyh@debian.org>  Mon, 11 Aug 2003 17:21:17 -0400
+
 wmbattery (2.16) unstable; urgency=low
 
   * Another patch from Hugo Haas, this time it adds time-till-charged

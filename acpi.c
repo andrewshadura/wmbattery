@@ -295,8 +295,9 @@ int acpi_read (int battery, apm_info *info) {
 				goto NOBATT;
 			}
 			else {
-				/* a zero in the file; time unknown */
-				info->battery_time = 0;
+				/* a zero in the file; time unknown so use
+				 * a negative one to indicate this */
+				info->battery_time = -1;
 			}
 		}
 

@@ -458,22 +458,16 @@ void alarmhandler(int sig) {
 	else if (! use_sonypi) {
 		if (apm_read(&cur_info) != 0)
 			error("Cannot read APM information.");
-		/* Apm uses negative numbers here to indicate error or
-		 * missing battery or something. */
-		if (cur_info.battery_time < 0) {
-			if (! always_estimate_remaining) {
-				/* No battery life indicated; estimate it */
-				estimate_timeleft(&cur_info);
-			}
-		}
 	}
 	else {
 		if (sonypi_read(&cur_info) != 0)
 			error("Cannot read sonypi information.");
 	}
 	
-	/* Always calculate remaining lifetime? */
-	if (always_estimate_remaining)
+	/* Always calculate remaining lifetime? apm and acpi both use a
+	 * negative number here to indicate error, missing battery, or
+	 * cannot determine time. */
+	if (always_estimate_remaining || cur_info.battery_time < 0)
 		estimate_timeleft(&cur_info);
 	
 	/* Override the battery status? */
