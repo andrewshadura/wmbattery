@@ -2,7 +2,7 @@ Source: wmbattery
 Section: x11
 Priority: extra
 Maintainer: Joey Hess <joeyh@master.debian.org>
-Standards-Version: 2.4.1.3
+Standards-Version: 3.0.1.1
 
 Package: wmbattery
 Architecture: any
