@@ -17,7 +17,7 @@ Description: Display laptop battery info, dockable in WindowMaker
  or critical - red).
  .
  There's nothing in the program that makes it require WindowMaker, except
- maybe the look. It can be docked in WindowMaker or Afterstep's dock.
+ maybe the look. It can be docked in WindowMaker or AfterStep's dock.
  .
  To use this program you need to enable APM support for your kernel during
  configuration; the corresponding questions are in the 'Character devices'

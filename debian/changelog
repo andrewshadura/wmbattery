@@ -1,3 +1,9 @@
+wmbattery (1.21) unstable; urgency=low
+
+  * Typo, Closes: #125485
+
+ -- Joey Hess <joeyh@debian.org>  Mon, 17 Dec 2001 21:41:52 -0500
+
 wmbattery (1.20) unstable; urgency=low
 
   * Still show percent sign when blinking low. Closes: #123183
