@@ -1,3 +1,5 @@
+#include "apm.h"
+
 typedef struct {
 	Pixmap pixmap;
 	Pixmap mask;

@@ -9,7 +9,7 @@
 #include <dirent.h>
 #include <string.h>
 #ifdef ACPI_APM
-#include <apm.h>
+#include "apm.h"
 #endif
 #include <sys/types.h>
 #include <sys/stat.h>

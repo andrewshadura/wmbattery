@@ -7,7 +7,6 @@
 #include <X11/extensions/shape.h>
 #include <stdarg.h>
 #include <signal.h>
-#include <apm.h>
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
