@@ -9,6 +9,9 @@
 #include <signal.h>
 #include <time.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
@@ -27,6 +30,10 @@ Display *display;
 GC NormalGC;
 int pos[2] = {0, 0};
 
+char *crit_audio_fn = NULL;
+char *crit_audio;
+int crit_audio_size;
+
 int battnum = 1;
 int use_sonypi = 0;
 int use_acpi = 0;
@@ -37,15 +44,15 @@ signed int low_pct = -1;
 signed int critical_pct = -1;
 
 void error(const char *fmt, ...) {
-  	va_list arglist;
+	va_list arglist;
   
 	va_start(arglist, fmt);
 	fprintf(stderr, "Error: ");
 	vfprintf(stderr, fmt, arglist);
 	fprintf(stderr, "\n");
 	va_end(arglist);
-  
-  	exit(1);
+
+	exit(1);
 }
 
 int apm_change(apm_info *cur) {
@@ -160,6 +167,31 @@ void load_images() {
     }
 }
 
+void load_audio() {
+	int fd;
+	struct stat s;
+
+	crit_audio = NULL;
+	if (crit_audio_fn == NULL) {
+		return;
+	}
+	fd = open(crit_audio_fn, 0);
+	if (fd == -1) {
+		error("unable to open audio file");
+	}
+	if (fstat(fd, &s) == 0) {
+		crit_audio_size = s.st_size;
+		crit_audio = malloc(crit_audio_size);
+		/* XXX: make this more robust? (loop?) */
+		if (read(fd, crit_audio, crit_audio_size) != crit_audio_size) {
+			free(crit_audio);
+			crit_audio = NULL;
+			error("unable to read audio file");
+		}
+	}
+	close(fd);
+}
+
 /* Returns the display to run on (or NULL for default). */
 char *parse_commandline(int argc, char *argv[]) {
 	int c=0;
@@ -168,7 +200,7 @@ char *parse_commandline(int argc, char *argv[]) {
 	extern char *optarg;
 	
   	while (c != -1) {
-  		c=getopt(argc, argv, "hd:g:f:b:w:c:l:e");
+  		c=getopt(argc, argv, "hd:g:f:b:w:c:l:ea:");
 		switch (c) {
 		  case 'h':
 			printf("Usage: wmbattery [options]\n");
@@ -180,23 +212,24 @@ char *parse_commandline(int argc, char *argv[]) {
 			printf("\t-l percent\tlow percentage\n");
 			printf("\t-c percent\tcritical percentage\n");
 			printf("\t-e\t\tuse own time estimates\n");
+			printf("\t-a file\t\twhen critical send file to /dv/audio\n");
                		exit(0);
 		 	break;
 		  case 'd':
 		  	ret=strdup(optarg);
                         break;
-  		  case 'g':
-                        s = strtok(optarg, "+");
-                        if (s) {
-                          pos[0]=atoi(s);
-                          if ((s = strtok(NULL, "+")) != NULL) {
-                            pos[1]=atoi(s);
-                          }
-                          else {
-                            pos[0]=0;
-                          }
-                        }
-                        break;
+		  case 'g':
+			s = strtok(optarg, "+");
+			if (s) {
+				pos[0]=atoi(s);
+				if ((s = strtok(NULL, "+")) != NULL) {
+					pos[1]=atoi(s);
+				}
+				else {
+					pos[0]=0;
+				}
+			}
+			break;
 		  case 'b':
 			battnum = atoi(optarg);
 			break;
@@ -211,108 +244,112 @@ char *parse_commandline(int argc, char *argv[]) {
 			break;
 		  case 'r':
 			always_estimate_remaining = 1;
-      		}
-    	}
-  
-  	return ret;
+			break;
+		  case 'a':
+			crit_audio_fn = strdup(optarg);
+			break;
+		}
+	}
+
+	return ret;
 }
 
 /* Sets up the window and icon and all the nasty X stuff. */
 void make_window(char *display_name, int argc, char *argv[]) {
 	XClassHint classhint;
 	char *wname = argv[0];
-  	XTextProperty name;
-  	XGCValues gcv;
-  	int dummy=0, borderwidth = 1;
+	XTextProperty name;
+	XGCValues gcv;
+	int dummy=0, borderwidth = 1;
 	XSizeHints sizehints;
-  	XWMHints wmhints;
+	XWMHints wmhints;
 	Pixel back_pix, fore_pix;
 	Pixmap pixmask;
 
-  	if (!(display = XOpenDisplay(display_name)))
-    		error("can't open display %s",XDisplayName(display_name));
+	if (!(display = XOpenDisplay(display_name)))
+		error("can't open display %s",XDisplayName(display_name));
 
 	screen=DefaultScreen(display);
-  	root=RootWindow(display, screen);
+	root=RootWindow(display, screen);
 
-  	/* Create window. */
-  	sizehints.flags = USSize | USPosition;
-  	sizehints.x = 0;
-  	sizehints.y = 0;
-  	XWMGeometry(display, screen, "", NULL, borderwidth,
+	/* Create window. */
+	sizehints.flags = USSize | USPosition;
+	sizehints.x = 0;
+	sizehints.y = 0;
+	XWMGeometry(display, screen, "", NULL, borderwidth,
 		    &sizehints, &sizehints.x, &sizehints.y,
 		    &sizehints.width, &sizehints.height, &dummy);
 
 	sizehints.width = 64;
-  	sizehints.height = 64;
-  	sizehints.x = pos[0];
-  	sizehints.y = pos[1];
-        back_pix = WhitePixel(display, screen);
-        fore_pix = BlackPixel(display, screen);
-  	win = XCreateSimpleWindow(display, root, sizehints.x, sizehints.y,
+	sizehints.height = 64;
+	sizehints.x = pos[0];
+	sizehints.y = pos[1];
+	back_pix = WhitePixel(display, screen);
+	fore_pix = BlackPixel(display, screen);
+	win = XCreateSimpleWindow(display, root, sizehints.x, sizehints.y,
 				  sizehints.width, sizehints.height,
 				  borderwidth, fore_pix, back_pix);
-  	iconwin = XCreateSimpleWindow(display, win, sizehints.x,
+	iconwin = XCreateSimpleWindow(display, win, sizehints.x,
 				      sizehints.y, sizehints.width,
 				      sizehints.height, borderwidth,
 				      fore_pix, back_pix);
 
-  	/* Activate hints */
-       	XSetWMNormalHints(display, win, &sizehints);
-        classhint.res_name = wname;
-   	classhint.res_class = wname;
-       	XSetClassHint(display, win, &classhint);
+	/* Activate hints */
+	XSetWMNormalHints(display, win, &sizehints);
+	classhint.res_name = wname;
+	classhint.res_class = wname;
+	XSetClassHint(display, win, &classhint);
   
-  	if (! XStringListToTextProperty(&wname, 1, &name))
-	  	error("Can't allocate window name.");
-  	
-  	XSetWMName(display, win, &name);
+	if (! XStringListToTextProperty(&wname, 1, &name))
+		error("Can't allocate window name.");
+
+	XSetWMName(display, win, &name);
   
-  	/* Create GC for drawing */
-  	gcv.foreground = fore_pix;
-  	gcv.background = back_pix;
-  	gcv.graphics_exposures = 0;
-  	NormalGC = XCreateGC(display, root, 
+	/* Create GC for drawing */
+	gcv.foreground = fore_pix;
+	gcv.background = back_pix;
+	gcv.graphics_exposures = 0;
+	NormalGC = XCreateGC(display, root, 
 			     GCForeground | GCBackground | GCGraphicsExposures,
 			     &gcv);
 
-  	pixmask = XCreateBitmapFromData(display, win, mask_bits,
+	pixmask = XCreateBitmapFromData(display, win, mask_bits,
 					mask_width,mask_height);
-  	XShapeCombineMask(display, win, ShapeBounding, 0, 0,
+	XShapeCombineMask(display, win, ShapeBounding, 0, 0,
 			  pixmask, ShapeSet);
-  	XShapeCombineMask(display, iconwin, ShapeBounding, 0, 0,
+	XShapeCombineMask(display, iconwin, ShapeBounding, 0, 0,
 			  pixmask, ShapeSet);
 	
-  	wmhints.initial_state = WithdrawnState;
-  	wmhints.icon_window = iconwin;
-  	wmhints.icon_x = sizehints.x;
-  	wmhints.icon_y = sizehints.y;
-  	wmhints.window_group = win;
-  	wmhints.flags = StateHint | IconWindowHint | 
+	wmhints.initial_state = WithdrawnState;
+	wmhints.icon_window = iconwin;
+	wmhints.icon_x = sizehints.x;
+	wmhints.icon_y = sizehints.y;
+	wmhints.window_group = win;
+	wmhints.flags = StateHint | IconWindowHint | 
     			IconPositionHint | WindowGroupHint;
   
-  	XSetWMHints(display, win, &wmhints);
-  	XSetCommand(display, win, argv, argc);
+	XSetWMHints(display, win, &wmhints);
+	XSetCommand(display, win, argv, argc);
 
 	XSelectInput(display, iconwin, ExposureMask);
 	XSelectInput(display, win, ExposureMask);
 
- 	XMapWindow(display, win);
+	XMapWindow(display, win);
 }
 
 void flush_expose(Window w) {
-  	XEvent dummy;
+	XEvent dummy;
   
-  	while (XCheckTypedWindowEvent(display, w, Expose, &dummy));
+	while (XCheckTypedWindowEvent(display, w, Expose, &dummy));
 }
 
 void redraw_window() {
-  	XCopyArea(display, images[FACE], iconwin, NormalGC, 0, 0,
+	XCopyArea(display, images[FACE], iconwin, NormalGC, 0, 0,
 		  image_info[FACE].width, image_info[FACE].height, 0,0);
-  	flush_expose(iconwin);
-  	XCopyArea(display, images[FACE], win, NormalGC, 0, 0, 
+	flush_expose(iconwin);
+	XCopyArea(display, images[FACE], win, NormalGC, 0, 0, 
 		  image_info[FACE].width, image_info[FACE].height, 0,0);
-  	flush_expose(win);
+	flush_expose(win);
 }
 
 /*
@@ -320,9 +357,9 @@ void redraw_window() {
  * located anywhere.
  */
 void copy_image(int image, int xoffset, int yoffset,
-		int width, int height, int x, int y) {
+                int width, int height, int x, int y) {
 	XCopyArea(display, images[image], images[FACE], NormalGC,
-		  xoffset, yoffset, width, height, x, y);
+	          xoffset, yoffset, width, height, x, y);
 }
 
 /*
@@ -448,9 +485,26 @@ void recalc_window(apm_info cur_info) {
 	redraw_window();
 }
 
+void snd_crit() {
+	int audio, n;
+
+	if (crit_audio) {
+		audio = open("/dev/audio", O_WRONLY);
+		if (audio >= 0) {
+			n = write(audio, crit_audio, crit_audio_size);
+			if (n != crit_audio_size) {
+				fprintf(stderr, "write failed (%d/%d bytes)\n", n, crit_audio_size);
+			}
+			close(audio);
+		}
+	}
+}
+
 void alarmhandler(int sig) {
 	apm_info cur_info;
-	
+	int old_status;
+
+	old_status = cur_info.battery_status;
 	if (use_acpi) {
 		if (acpi_read(battnum, &cur_info) != 0)
 			error("Cannot read ACPI information.");
@@ -486,6 +540,14 @@ void alarmhandler(int sig) {
 	if (!apm_change(&cur_info) || cur_info.battery_status == BATTERY_STATUS_CRITICAL)
 		recalc_window(cur_info);
 
+	if ((old_status == BATTERY_STATUS_HIGH) &&
+	    (cur_info.battery_status == BATTERY_STATUS_LOW)) {
+		snd_crit();
+	}
+	else if (cur_info.battery_status == BATTERY_STATUS_CRITICAL) {
+		snd_crit();
+	}
+
 	alarm(delay);
 }
 
@@ -518,11 +580,13 @@ int main(int argc, char *argv[]) {
 			delay = 1;
 	}
 	else {
+	
 		error("No APM, ACPI, or SPIC support in kernel.");
 	}
 		
 	load_images();
-	
+        load_audio();
+
 	signal(SIGALRM, alarmhandler);
 	alarmhandler(SIGALRM);
 

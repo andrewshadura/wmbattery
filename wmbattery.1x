@@ -15,8 +15,8 @@ can get battery information using APM, ACPI, or the SPIC controller in some
 Sony laptops. You need to build your kernel with support for at least one
 of these for the program to work.
 .B wmbattery
-is dockable using WindowMaker and AfterStep window-managers; under
-other window-managers
+is dockable using WindowMaker and AfterStep window managers; under
+other window managers
 .B wmbattery
 appears as a nicely-sized 64x64 application.
 .PP
@@ -82,13 +82,13 @@ one battery. The default is to display the first battery found.
 .B \-l percent
 Set the percentaqge at which the battery is considered to be running low. By
 default, this percentage is determined by APM or ACPI, and you shouldn't
-need to set it. If you set this, you should probably also set the -c
+need to set it. If you set this, you should probably also set the \-c
 switch.
 .TP
 .B \-c percent
 Set the percentage at which the battery is considered to be critically low.
 By default, this percentage is determined by APM or ACPI, and you shouldn't
-need to set it. If you set this, you should probably also set the -l
+need to set it. If you set this, you should probably also set the \-l
 switch.
 .TP
 .B \-e
@@ -96,5 +96,9 @@ wmbattery contains code for estimating the time remaining before discharge,
 and until full charge,and this code is used if no other source of this
 informaton is available. This switch makes wmbattery use its time 
 estimation code even if some other estimate is available.
+.TP
+.B \-a file.au
+Play the specified au file (by sending it to /dev/audio) when the battery
+is low.
 .SH AUTHOR
 Joey Hess <joey@kitenet.net>

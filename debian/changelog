@@ -1,3 +1,13 @@
+wmbattery (2.20) unstable; urgency=low
+
+  * Patch from Kris Verbeeck to add a -a option to play an au file
+    on low battery.
+  * Document it in the man page.
+  * Unicode dash fixes on man page.
+  * Some indentation fixes.
+
+ -- Joey Hess <joeyh@debian.org>  Wed, 24 Nov 2004 16:20:39 -0500
+
 wmbattery (2.19) unstable; urgency=low
 
   * Use the proper new-style acpi string when looking for ac adaptor status.
