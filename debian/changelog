@@ -1,3 +1,9 @@
+wmbattery (1.20) unstable; urgency=low
+
+  * Still show percent sign when blinking low. Closes: #123183
+
+ -- Joey Hess <joeyh@debian.org>  Sun,  9 Dec 2001 22:44:17 -0500
+
 wmbattery (1.19) unstable; urgency=low
 
   * Used two more grey's in the transition between shadow and highlight

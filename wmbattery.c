@@ -422,7 +422,7 @@ void recalc_window(apm_info cur_info) {
 		if (blinked)
 			draw_image(BATTERY_LOW);
 		else
-			draw_image(BATTERY_NONE);
+			draw_image(BATTERY_BLINK);
 		blinked=!blinked;
 		break;
 	  default:

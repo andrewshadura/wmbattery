@@ -39,15 +39,16 @@ typedef struct image_info_type {
 #define BATTERY_MEDIUM 3
 #define BATTERY_LOW 4
 #define BATTERY_NONE 5
-#define UNPLUGGED 6
-#define PLUGGED 7
-#define NOCHARGING 8
-#define CHARGING 9
-#define DIAL_BRIGHT 10
-#define DIAL_DIM 11
-#define FACE 12
+#define BATTERY_BLINK 6
+#define UNPLUGGED 7
+#define PLUGGED 8
+#define NOCHARGING 9
+#define CHARGING 10
+#define DIAL_BRIGHT 11
+#define DIAL_DIM 12
+#define FACE 13
 
-#define NUM_IMAGES 13
+#define NUM_IMAGES 14
 
 /*
  * An array of the filenames of all images to load (minus .xpm extention),
@@ -60,6 +61,7 @@ static struct image_info_type image_info[] = {
   {"battery_medium",25,13,33,42,0},
   {"battery_low",25,13,33,42,0},
   {"battery_none",25,13,33,42,0},
+  {"battery_blink",25,13,33,42,0},
   {"unplugged",10,8,6,45,0},
   {"plugged",10,8,6,45,0},
   {"nocharging",15,9,17,43,0},
@@ -69,7 +71,6 @@ static struct image_info_type image_info[] = {
   {"face",64,64,0,0,0},
 };
 
-/* TODO: get rid of this. */
 #define DIAL_MULTIPLIER 0.56
 
 /* Locations of letters in the percent remaining display. */
