@@ -1,3 +1,11 @@
+wmbattery (2.21) UNRELEASED; urgency=low
+
+  * Merge in changes from procmeter3's version of acpi.c, made by Andrew M.
+    Bishop, that avoid the ugly chdir to /proc/acpi and add a bit of error
+    checking.
+
+ -- Joey Hess <joeyh@debian.org>  Tue, 30 Nov 2004 13:27:15 -0500
+
 wmbattery (2.20) unstable; urgency=low
 
   * Patch from Kris Verbeeck to add a -a option to play an au file

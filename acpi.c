@@ -150,8 +150,8 @@ int _acpi_compare_strings (const void *a, const void *b) {
 }
 
 /* Find something (batteries, ac adpaters, etc), and set up a string array
- * to hold the paths to info and status files of the things found. Must be 
- * in /proc/acpi to call this. Returns the number of items found. */
+ * to hold the paths to info and status files of the things found.
+ * Returns the number of items found. */
 int find_items (char *itemname, char infoarray[ACPI_MAXITEM][128],
 		                char statusarray[ACPI_MAXITEM][128]) {
 	DIR *dir;
@@ -160,7 +160,11 @@ int find_items (char *itemname, char infoarray[ACPI_MAXITEM][128],
 	int i;
 	char **devices = malloc(ACPI_MAXITEM * sizeof(char *));
 	
-	dir = opendir(itemname);
+	char pathname[128];
+
+	sprintf(pathname,PROC_ACPI "/%s",itemname);
+
+	dir = opendir(pathname);
 	if (dir == NULL)
 		return 0;
 	while ((ent = readdir(dir))) {
@@ -175,14 +179,14 @@ int find_items (char *itemname, char infoarray[ACPI_MAXITEM][128],
 	}
 	closedir(dir);
 	
-	/* Sort, since readdir can return in any order. /proc/does
+	/* Sort, since readdir can return in any order. /proc/ does
 	 * sometimes list BATT2 before BATT1. */
 	qsort(devices, num_devices, sizeof(char *), _acpi_compare_strings);
 
 	for (i = 0; i < num_devices; i++) {
-		sprintf(infoarray[i], "%s/%s/%s", itemname, devices[i],
+		sprintf(infoarray[i], PROC_ACPI "/%s/%s/%s", itemname, devices[i],
 			acpi_labels[label_info]);
-		sprintf(statusarray[i], "%s/%s/%s", itemname, devices[i],
+		sprintf(statusarray[i], PROC_ACPI "/%s/%s/%s", itemname, devices[i],
 			acpi_labels[label_status]);
 		free(devices[i]);
 	}
@@ -220,7 +224,8 @@ int find_thermal(void) {
 int on_ac_power (void) {
 	int i;
 	for (i = 0; i < acpi_ac_count; i++) {
-		if (strcmp(acpi_labels[label_online], get_acpi_value(acpi_ac_adapter_status[i], acpi_labels[label_ac_state])) == 0)
+                char *online=get_acpi_value(acpi_ac_adapter_status[i], acpi_labels[label_ac_state]);
+		if (online && strcmp(acpi_labels[label_online], online) == 0)
 			return 1;
 		else
 			return 0;
@@ -232,11 +237,13 @@ int on_ac_power (void) {
  * ac power adapters. */
 int acpi_supported (void) {
 	char *version;
+	DIR *dir;
 	int num;
 
-	if (chdir(PROC_ACPI) == -1) {
+	if (!(dir = opendir(PROC_ACPI))) {
 		return 0;
 	}
+	closedir(dir);
 	
 	version = get_acpi_value("info", "ACPI-CA Version:");
 	if (version == NULL) {
