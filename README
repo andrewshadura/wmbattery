@@ -12,17 +12,21 @@ some improvements in wmbattery:
   - Improved icon layout. I crammed the same information into less space
     while making the icon more elegant and visually pleasing (IMHO).
   - Easier to drag onto dock.
-  - Displays 100% when your battery is full (wmapm is limited to 99% maximum).
   - It consumes a little less memory.
-  - Uses only 8 colors.
+  - Uses only 10 colors.
   - You can run in on a different display via -d (broken in wmapm).
 
 Conversely, here are some reasons to stick with wmapm:
 
-  - It's a more mature program.
   - You like its look.
   - It has a neat rainbow-colored progress bar.
-  - You need freebsd support (should be added to wmbattery eventually).
+  - It has buttons to suspend the laptop and stuff.
+  - It may be more actively and/or better maintained. Or not. 
+    Decide for yourself.
+
+Still, forking is evil, and if I was doing this all over again, I suppose
+I'd try to add theme support to wmamn so it could morph into wmbattery with
+a theme. Oh well.
 
 The homepage for wmbattery is <http://kitenet.net/programs/wmbattery/>
 

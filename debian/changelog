@@ -1,3 +1,10 @@
+wmbattery (1.19) unstable; urgency=low
+
+  * Used two more grey's in the transition between shadow and highlight
+    in the dial. Looks a bit better.
+
+ -- Joey Hess <joeyh@debian.org>  Wed,  7 Nov 2001 22:35:37 -0500
+
 wmbattery (1.18) unstable; urgency=low
 
   * Autoconf 2.50 demands an absolute --mandir=
