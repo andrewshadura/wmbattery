@@ -6,7 +6,7 @@ prefix=@prefix@
 srcdir=@srcdir@
 
 CC=@CC@
-CFLAGS=@CFLAGS@ -Wall
+CFLAGS=@CFLAGS@ -Wall -DACPI_APM
 CPPFLAGS=@CPPFLAGS@ -DICONDIR=\"$(icondir)\"
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@

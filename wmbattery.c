@@ -28,7 +28,7 @@ int pos[2] = {0, 0};
 
 int battnum = 1;
 int use_sonypi = 0;
-int use_acpi = 1;
+int use_acpi = 0;
 int delay = 0;
 
 signed int low_pct = -1;
@@ -413,11 +413,11 @@ int main(int argc, char *argv[]) {
 	}
 	/* Check for ACPI support. */
 	else if (acpi_supported()) {
-		if (battnum > batt_count || battnum < 1) {
+		if (battnum > acpi_batt_count || battnum < 1) {
 			error("There %s only %i batter%s, and you asked for number %i.",
-					batt_count == 1 ? "is" : "are",
-					batt_count,
-					batt_count == 1 ? "y" : "ies",
+					acpi_batt_count == 1 ? "is" : "are",
+					acpi_batt_count,
+					acpi_batt_count == 1 ? "y" : "ies",
 					battnum);
 		}
 		use_acpi = 1;
