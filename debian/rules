@@ -1,10 +1,4 @@
 #!/usr/bin/make -f
-# Sample debian/rules that uses debhelper. GNU copyright 1997 by Joey Hess.
-
-# Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
-
-export DH_COMPAT=3
 
 build: build-stamp
 build-stamp:

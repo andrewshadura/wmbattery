@@ -4,6 +4,28 @@
 
 include makeinfo
 
+all: wmbattery
+
+clean:
+	rm -f wmbattery *.o
+
+distclean: clean
+	rm -f config.status config.cache config.log makeinfo config.h
+
+install: all
+	$(INSTALL) -d $(bindir) $(man1dir) $(icondir)
+	$(INSTALL_PROGRAM) wmbattery $(bindir)
+	$(INSTALL_DATA) $(srcdir)/wmbattery.1x $(man1dir)/wmbattery.1x
+	$(INSTALL_DATA) $(srcdir)/*.xpm $(icondir)
+
+uninstall:
+	rm -rf $(bindir)/wmbattery $(man1dir)/wmbattery.1x $(icondir)
+
+wmbattery: wmbattery.o acpi.o sonypi.o
+	$(CC) $(LDFLAGS) wmbattery.o acpi.o sonypi.o -o wmbattery $(LIBS)
+
+wmbattery.o: wmbattery.c wmbattery.h
+
 configure: configure.in
 	autoconf
 

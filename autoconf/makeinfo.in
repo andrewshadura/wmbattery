@@ -1,45 +1,21 @@
-bindir=@bindir@
-exec_prefix=@exec_prefix@
-icondir=@datadir@/icons/wmbattery
-man1dir=@mandir@/man1
-prefix=@prefix@
-srcdir=@srcdir@
+# Info for make, this will be preprocessed by autoconf.
+bindir		= @bindir@
+exec_prefix 	= @exec_prefix@
+icondir		= @datadir@/icons/wmbattery
+man1dir		= @mandir@/man1
+prefix		= @prefix@
+srcdir		= @srcdir@
 
-CC=@CC@
-CFLAGS=@CFLAGS@ -Wall -DACPI_APM
-CPPFLAGS=@CPPFLAGS@ -DICONDIR=\"$(icondir)\"
-INSTALL = @INSTALL@
-INSTALL_DATA = @INSTALL_DATA@
-INSTALL_PROGRAM = @INSTALL_PROGRAM@
-LDFLAGS=@LDFLAGS@
-LIBS=@LIBS@
-VPATH=@srcdir@
+CC		= @CC@
+CFLAGS		= @CFLAGS@ -Wall -DACPI_APM
+CPPFLAGS	= @CPPFLAGS@ -DICONDIR=\"$(icondir)\"
+INSTALL		= @INSTALL@
+INSTALL_DATA	= @INSTALL_DATA@
+INSTALL_PROGRAM	= @INSTALL_PROGRAM@
+LDFLAGS		= @LDFLAGS@
+LIBS		= @LIBS@
 
-all: wmbattery
-
-clean:
-	rm -f wmbattery *.o
-
-distclean: clean
-	rm -f config.status config.cache config.log makeinfo config.h
-
-dist: distclean
-	@if [ -d $(srcdir)/CVS ]; then \
-		echo "Run from exported sources to avoid distributing CVS files"; \
-	else \
-		cd $(srcdir) && autoconf && (cd .. && tar czvf wmbattery.tar.gz wmbattery); \
-	fi
-
-install: all
-	$(INSTALL) -d $(bindir) $(man1dir) $(icondir)
-	$(INSTALL_PROGRAM) wmbattery $(bindir)
-	$(INSTALL_DATA) $(srcdir)/wmbattery.1x $(man1dir)/wmbattery.1x
-	$(INSTALL_DATA) $(srcdir)/*.xpm $(icondir)
-
-uninstall:
-	rm -rf $(bindir)/wmbattery $(man1dir)/wmbattery.1x $(icondir)
-
-wmbattery: wmbattery.o acpi.o sonypi.o
-	$(CC) $(LDFLAGS) wmbattery.o acpi.o sonypi.o -o wmbattery $(LIBS)
-
-wmbattery.o: wmbattery.c wmbattery.h
+# DEB_BUILD_OPTIONS suport, to control binary stripping.
+ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
+INSTALL_PROGRAM += -s
+endif

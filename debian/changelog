@@ -1,3 +1,11 @@
+wmbattery (2.09) unstable; urgency=low
+
+  * Moved makefile stuff out of makeinfo, so it is just definitions.
+  * Support DEB_BUILD_OPTIONS.
+  * debhelper v4.
+
+ -- Joey Hess <joeyh@debian.org>  Sat,  1 Jun 2002 16:31:53 -0400
+
 wmbattery (2.08) unstable; urgency=low
 
   * Don't crash if there is a /proc/acpi/ with no status file.

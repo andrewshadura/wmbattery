@@ -1,13 +1,13 @@
 Source: wmbattery
 Section: x11
 Priority: extra
-Build-Depends: debhelper (>= 3), xlibs-dev, autoconf, libapm-dev
+Build-Depends: debhelper (>= 4), xlibs-dev, autoconf, libapm-dev, dpkg-dev (>= 1.9.0)
 Maintainer: Joey Hess <joeyh@debian.org>
 Standards-Version: 3.5.6.1
 
 Package: wmbattery
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Suggests: wmaker
 Description: display laptop battery info, dockable in WindowMaker
  wmbattery displays the status of your laptop's battery in a small icon.
