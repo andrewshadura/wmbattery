@@ -1,4 +1,4 @@
-#define DELAY 1250000 /* Delay between refreshes (in microseconds) */
+#define DELAY 1 /* Delay between refreshes (in seconds) */
 
 typedef struct {
 	Pixmap pixmap;
@@ -6,7 +6,7 @@ typedef struct {
   	XpmAttributes attributes;
 } XpmIcon;
 
-typedef struct apm_info {
+typedef struct {
 	const char driver_version[10];
 	int apm_version_major;
    	int apm_version_minor;

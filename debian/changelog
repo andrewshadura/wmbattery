@@ -1,3 +1,16 @@
+wmbattery (1.17) unstable; urgency=low
+
+  * Patch from Edward Betts <edward@debian.org> to make the icon redraw
+    immediatly when it gets an expose event. The patch also lowers the CPU
+    time used as the icon is not needlessly redrawn every second. Thanks
+    Edward! Closes: #97779
+  * Battery blink fixup. (I seem to have inexplicably lost the changelog
+    and version involving making the battery blink red on and off when the
+    status is critical -- I did this recently because the eye tends to
+    notice the motion).
+
+ -- Joey Hess <joeyh@debian.org>  Thu, 17 May 2001 13:16:55 -0400
+
 wmbattery (1.16) unstable; urgency=low
 
   * Another patch from Kevin, which allows removal of the

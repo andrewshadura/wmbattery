@@ -6,6 +6,7 @@
 #include <X11/xpm.h>
 #include <X11/extensions/shape.h>
 #include <stdarg.h>
+#include <signal.h>
 
 #ifdef HAVE_SYS_FILE_H
 #include <sys/file.h>
@@ -181,6 +182,27 @@ int apm_read(apm_info *i) {
 
 #endif /* linux */
 
+int apm_change(apm_info *cur) {
+	static int ac_line_status = 0, battery_status = 0, battery_flags = 0,
+		battery_percentage = 0, battery_time = 0, using_minutes = 0;
+
+	int i = cur->ac_line_status     == ac_line_status     &&
+		cur->battery_status     == battery_status     &&
+		cur->battery_flags      == battery_flags      &&
+		cur->battery_percentage == battery_percentage &&
+		cur->battery_time       == battery_time       &&
+		cur->using_minutes      == using_minutes;
+
+	ac_line_status = cur->ac_line_status;
+	battery_status = cur->battery_status;
+	battery_flags = cur->battery_flags;
+	battery_percentage = cur->battery_percentage;
+	battery_time = cur->battery_time;
+	using_minutes = cur->using_minutes;
+
+	return i;
+}
+
 int apm_exists() {
 	apm_info i;
   
@@ -324,6 +346,10 @@ void make_window(char *display_name, int argc, char *argv[]) {
   
   	XSetWMHints(display, win, &wmhints);
   	XSetCommand(display, win, argv, argc);
+
+	XSelectInput(display, iconwin, ExposureMask);
+	XSelectInput(display, win, ExposureMask);
+
  	XMapWindow(display, win);
 }
 
@@ -370,114 +396,136 @@ void draw_image(int image) {
 		   image_info[image].x, image_info[image].y);
 }
 
-int main(int argc, char *argv[]) {
-	apm_info cur_info;
+void recalc_window(apm_info cur_info) {
 	int time_left, hour_left, min_left, digit, x;
-	unsigned long sleep_time = DELAY;
+	static int blinked = 0;
+	
+	/* Display if it's plugged in. */
+      	switch (cur_info.ac_line_status) {
+	  case 1:
+		draw_image(PLUGGED);
+		break;
+       	  default:
+		draw_image(UNPLUGGED);
+      	}
+    
+      	/* Display the appropriate color battery. */
+      	switch (cur_info.battery_status) {
+	  case 0: /* high */
+	  case 3: /* charging */
+		draw_image(BATTERY_HIGH);
+		break;
+	  case 1:
+		draw_image(BATTERY_MEDIUM);
+		break;
+	  case 2: /* critical -- blinking red battery */
+		if (blinked)
+			draw_image(BATTERY_LOW);
+		else
+			draw_image(BATTERY_NONE);
+		blinked=!blinked;
+		break;
+	  default:
+		draw_image(BATTERY_NONE);
+      	}
 
-  	make_window(parse_commandline(argc, argv), argc ,argv);
+      	/* Show if the battery is charging. */
+  	if (cur_info.battery_flags & 8) {
+		draw_image(CHARGING);
+	}
+  	else {
+		draw_image(NOCHARGING);
+      	}
+
+     	/*
+       	 * Display the percent left dial. This has the side effect of
+         * clearing the time left field. 
+         */
+  	x=DIAL_MULTIPLIER * cur_info.battery_percentage;
+      	if (x >= 0) {
+		/* Start by displaying bright on the dial. */
+		copy_image(DIAL_BRIGHT, 0, 0,
+			   x, image_info[DIAL_BRIGHT].height,
+			   image_info[DIAL_BRIGHT].x,
+			   image_info[DIAL_BRIGHT].y);
+      	}
+      	/* Now display dim on the remainder of the dial. */
+  	copy_image(DIAL_DIM, x, 0,
+		   image_info[DIAL_DIM].width - x,
+		   image_info[DIAL_DIM].height,
+		   image_info[DIAL_DIM].x + x,
+		   image_info[DIAL_DIM].y);
+  
+      	/* Show time left */
+      	if (cur_info.battery_time >= 0) {
+        	if (cur_info.using_minutes)
+          		time_left = cur_info.battery_time;
+        	else
+          		time_left = cur_info.battery_time / 60; 
+        	hour_left = time_left / 60;
+        	min_left = time_left % 60;
+        	digit = hour_left / 10;
+        	draw_letter(digit,BIGFONT,HOURS_TENS_OFFSET);
+        	digit = hour_left % 10;
+		draw_letter(digit,BIGFONT,HOURS_ONES_OFFSET);
+       		digit = min_left / 10;
+        	draw_letter(digit,BIGFONT,MINUTES_TENS_OFFSET);
+        	digit = min_left % 10;
+        	draw_letter(digit,BIGFONT,MINUTES_ONES_OFFSET);
+      	}
+
+      	/* Show percent remaining */
+      	if (cur_info.battery_percentage >= 0) {
+        	digit = cur_info.battery_percentage / 10;
+       		if (digit == 10) {
+		  	/* 11 is the `1' for the hundreds place. */
+	  		draw_letter(11,SMALLFONT,HUNDREDS_OFFSET);
+	  		digit=0;
+		}
+		draw_letter(digit,SMALLFONT,TENS_OFFSET);
+		digit = cur_info.battery_percentage % 10;
+		draw_letter(digit,SMALLFONT,ONES_OFFSET);
+      	}
+  	else {
+	  	/* There is no battery, so we need to dim out the
+		 * colon and percent sign that are normally bright. */
+	  	draw_letter(10,SMALLFONT,PERCENT_OFFSET);
+	  	draw_letter(10,BIGFONT,COLON_OFFSET);
+	}
+
+	redraw_window();
+}
+
+void alarmhandler(int sig) {
+	apm_info cur_info;
+	
+	if (! apm_read(&cur_info))
+		error("Cannot read APM information.");
+	
+	/* If APM data changes redraw and wait for next update */
+	/* Always redraw if the status is critical, to make it blink. */
+	if (!apm_change(&cur_info) || cur_info.battery_status == 2)
+		recalc_window(cur_info);
+
+	alarm(DELAY);
+}
+
+int main(int argc, char *argv[]) {
+	make_window(parse_commandline(argc, argv), argc ,argv);
 
 	/*  Check for APM support */
-  	if (! apm_exists())
-    		error("No APM support in kernel.");
-
+	if (! apm_exists())
+		error("No APM support in kernel.");
+	
 	load_images();
-  
-	while (1) {
-      		if (! apm_read(&cur_info))
-      			error("Cannot read APM information.");
+	
+	signal(SIGALRM, alarmhandler);
+	alarmhandler(SIGALRM);
 
-    		/* Display if it's plugged in. */
-      		switch (cur_info.ac_line_status) {
-	  	  case 1:
-			draw_image(PLUGGED);
-			break;
-       	  	  default:
-			draw_image(UNPLUGGED);
-      		}
-    
-	      	/* Display the appropriate color battery. */
-	      	switch (cur_info.battery_status) {
-		  case 0: /* high */
-		  case 3: /* charging */
-			draw_image(BATTERY_HIGH);
-			break;
-		  case 1:
-			draw_image(BATTERY_MEDIUM);
-			break;
-		  case 2:
-			draw_image(BATTERY_LOW);
-			break;
-		  default:
-			draw_image(BATTERY_NONE);
-	      	}
-	
-	      	/* Show if the battery is charging. */
-	  	if (cur_info.battery_flags & 8) {
-			draw_image(CHARGING);
-		}
-	  	else {
-			draw_image(NOCHARGING);
-	      	}
-	
-	      	/*
-	       	 * Display the percent left dial. This has the side effect of
-	         * clearing the time left field. 
-	         */
-	  	x=DIAL_MULTIPLIER * cur_info.battery_percentage;
-	      	if (x >= 0) {
-			/* Start by displaying bright on the dial. */
-			copy_image(DIAL_BRIGHT, 0, 0,
-				   x, image_info[DIAL_BRIGHT].height,
-				   image_info[DIAL_BRIGHT].x,
-				   image_info[DIAL_BRIGHT].y);
-	      	}
-	      	/* Now display dim on the remainder of the dial. */
-	  	copy_image(DIAL_DIM, x, 0,
-			   image_info[DIAL_DIM].width - x,
-			   image_info[DIAL_DIM].height,
-			   image_info[DIAL_DIM].x + x,
-			   image_info[DIAL_DIM].y);
-	  
-	      	/* Show time left */
-	      	if (cur_info.battery_time >= 0) {
-	        	if (cur_info.using_minutes)
-	          		time_left = cur_info.battery_time;
-	        	else
-	          		time_left = cur_info.battery_time / 60; 
-	        	hour_left = time_left / 60;
-	        	min_left = time_left % 60;
-	        	digit = hour_left / 10;
-	        	draw_letter(digit,BIGFONT,HOURS_TENS_OFFSET);
-	        	digit = hour_left % 10;
-			draw_letter(digit,BIGFONT,HOURS_ONES_OFFSET);
-        		digit = min_left / 10;
-	        	draw_letter(digit,BIGFONT,MINUTES_TENS_OFFSET);
-	        	digit = min_left % 10;
-	        	draw_letter(digit,BIGFONT,MINUTES_ONES_OFFSET);
-	      	}
-	
-	      	/* Show percent remaining */
-	      	if (cur_info.battery_percentage >= 0) {
-	        	digit = cur_info.battery_percentage / 10;
-        		if (digit == 10) {
-			  	/* 11 is the `1' for the hundreds place. */
-		  		draw_letter(11,SMALLFONT,HUNDREDS_OFFSET);
-		  		digit=0;
-			}
-			draw_letter(digit,SMALLFONT,TENS_OFFSET);
-			digit = cur_info.battery_percentage % 10;
-			draw_letter(digit,SMALLFONT,ONES_OFFSET);
-	      	}
-	  	else {
-		  	/* There is no battery, so we need to dim out the
-			 * colon and percent sign that are normally bright. */
-		  	draw_letter(10,SMALLFONT,PERCENT_OFFSET);
-		  	draw_letter(10,BIGFONT,COLON_OFFSET);
-		}
-	
-	      	/* Redraw and wait for next update */
-	      	redraw_window();
-	      	usleep(sleep_time);
+	while (1) {
+		XEvent ev;
+		XNextEvent(display, &ev);
+		if (ev.type == Expose)
+			redraw_window();
 	}
 }
