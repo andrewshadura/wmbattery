@@ -158,7 +158,7 @@ int find_thermal(void) {
 int on_ac_power (void) {
 	int i;
 	for (i = 0; i < acpi_ac_count; i++) {
-		if (strcmp("on-line", get_acpi_value(acpi_ac_adapter_status[i], "Status:")))
+		if (strcmp("on-line", get_acpi_value(acpi_ac_adapter_status[i], "Status:")) == 0)
 			return 1;
 		else
 			return 0;

@@ -1,3 +1,10 @@
+wmbattery (2.11) unstable; urgency=low
+
+  * Corrected inverted test to see if ac power is online, that was only called
+    on 2 battery systems. Closes: #152356
+
+ -- Joey Hess <joeyh@debian.org>  Wed, 10 Jul 2002 16:10:40 -0400
+
 wmbattery (2.10) unstable; urgency=low
 
   * Deal with acpi putting nothing but "Present: no" in the info file for the
