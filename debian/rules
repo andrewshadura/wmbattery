@@ -13,18 +13,16 @@ build-stamp:
 clean:
 	dh_testdir
 	dh_testroot
-	rm -f build-stamp install-stamp
+	rm -f build-stamp
 	$(MAKE) clean
 	dh_clean
 
-install: install-stamp
-install-stamp: build-stamp
+install: build
 	dh_testdir
 	dh_testroot
 	dh_clean -k
 	dh_installdirs
 	$(MAKE) PREFIX=debian/tmp install
-	touch install-stamp
 
 # Build architecture-independent files here.
 binary-indep: build install

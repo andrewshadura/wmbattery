@@ -1,3 +1,9 @@
+wmbattery (1.10) unstable; urgency=low
+
+  * Removed install-stamp target, which can cause obscure problems.
+
+ -- Joey Hess <joeyh@master.debian.org>  Thu, 30 Sep 1999 13:32:33 -0700
+
 wmbattery (1.9) unstable; urgency=low
 
   * Expanded the man page to detail exactly what all parts of the display
