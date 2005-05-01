@@ -1,10 +1,10 @@
-wmbattery (2.21) UNRELEASED; urgency=low
+wmbattery (2.21) unstable; urgency=low
 
   * Merge in changes from procmeter3's version of acpi.c, made by Andrew M.
     Bishop, that avoid the ugly chdir to /proc/acpi and add a bit of error
-    checking.
+    checking. Now fully synced with procmeter3 3.4d.
 
- -- Joey Hess <joeyh@debian.org>  Tue, 30 Nov 2004 13:27:15 -0500
+ -- Joey Hess <joeyh@debian.org>  Sat, 30 Apr 2005 22:58:44 -0400
 
 wmbattery (2.20) unstable; urgency=low
 
