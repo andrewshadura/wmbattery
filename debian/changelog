@@ -1,3 +1,10 @@
+wmbattery (2.22) unstable; urgency=low
+
+  * Fix acpi detection, the code to read /proc/acpi/info was not updated
+    to the new cd-less code. Closes: #307278
+
+ -- Joey Hess <joeyh@debian.org>  Mon,  2 May 2005 18:14:01 -0400
+
 wmbattery (2.21) unstable; urgency=low
 
   * Merge in changes from procmeter3's version of acpi.c, made by Andrew M.

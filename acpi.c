@@ -245,10 +245,10 @@ int acpi_supported (void) {
 	}
 	closedir(dir);
 	
-	version = get_acpi_value("info", "ACPI-CA Version:");
+	version = get_acpi_value(PROC_ACPI "/info", "ACPI-CA Version:");
 	if (version == NULL) {
 		/* 2.5 kernel acpi */
-		version = get_acpi_value("info", "version:");
+		version = get_acpi_value(PROC_ACPI "/info", "version:");
 	}
 	if (version == NULL) {
 		return 0;
