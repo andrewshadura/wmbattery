@@ -1,3 +1,9 @@
+wmbattery (2.23) unstable; urgency=low
+
+  * xlibs-dev transition
+
+ -- Joey Hess <joeyh@debian.org>  Fri, 16 Dec 2005 14:54:25 -0500
+
 wmbattery (2.22) unstable; urgency=low
 
   * Fix acpi detection, the code to read /proc/acpi/info was not updated
