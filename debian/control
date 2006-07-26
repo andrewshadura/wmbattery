@@ -1,9 +1,9 @@
 Source: wmbattery
 Section: x11
 Priority: extra
-Build-Depends: debhelper (>= 4), libxext-dev, libxpm-dev, autoconf, libapm-dev, dpkg-dev (>= 1.9.0)
+Build-Depends: debhelper (>= 4), libxext-dev, libxpm-dev, autoconf, libapm-dev, dpkg-dev (>= 1.9.0), libxt-dev
 Maintainer: Joey Hess <joeyh@debian.org>
-Standards-Version: 3.6.2
+Standards-Version: 3.7.2
 
 Package: wmbattery
 Architecture: any
