@@ -281,6 +281,16 @@ int acpi_supported (void) {
 int acpi_read (int battery, apm_info *info) {
 	char *buf, *state;
 	
+	if (acpi_batt_count == 0) {
+		info->battery_percentage = 0;
+		info->battery_time = 0;
+		info->battery_status = BATTERY_STATUS_ABSENT;
+		acpi_batt_capacity[battery] = 0;
+		/* Where else would the power come from, eh? ;-) */
+		info->ac_line_status = 1;
+		return 0;
+	}
+	
 	/* Internally it's zero indexed. */
 	battery--;
 	
