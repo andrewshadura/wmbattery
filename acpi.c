@@ -168,8 +168,8 @@ int find_items (char *itemname, char infoarray[ACPI_MAXITEM][128],
 	if (dir == NULL)
 		return 0;
 	while ((ent = readdir(dir))) {
-		if (!strncmp(".", ent->d_name, 1) || 
-		    !strncmp("..", ent->d_name, 2))
+		if (!strcmp(".", ent->d_name) || 
+		    !strcmp("..", ent->d_name))
 			continue;
 
 		devices[num_devices]=strdup(ent->d_name);

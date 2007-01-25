@@ -1,3 +1,9 @@
+wmbattery (2.27) UNRELEASED; urgency=low
+
+  * Minor bug fix to acpi code, don't skip over dotfiles.
+
+ -- Joey Hess <joeyh@debian.org>  Wed, 24 Jan 2007 22:18:51 -0500
+
 wmbattery (2.26) unstable; urgency=medium
 
   * Add missing build dep on libxt-dev. Closes: #379247
