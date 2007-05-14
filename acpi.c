@@ -245,10 +245,16 @@ int acpi_supported (void) {
 	}
 	closedir(dir);
 	
-	version = get_acpi_value(PROC_ACPI "/info", "ACPI-CA Version:");
+	/* If kernel is 2.6.21 or newer, version is in
+	   /sys/module/acpi/parameters/acpica_version */
+	
+	version = get_acpi_file("/sys/module/acpi/parameters/acpica_version");
 	if (version == NULL) {
-		/* 2.5 kernel acpi */
-		version = get_acpi_value(PROC_ACPI "/info", "version:");
+		version = get_acpi_value(PROC_ACPI "/info", "ACPI-CA Version:");
+		if (version == NULL) {
+			/* 2.5 kernel acpi */
+			version = get_acpi_value(PROC_ACPI "/info", "version:");
+		}
 	}
 	if (version == NULL) {
 		return 0;

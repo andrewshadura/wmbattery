@@ -1,8 +1,10 @@
-wmbattery (2.27) UNRELEASED; urgency=low
+wmbattery (2.27) unstable; urgency=low
 
   * Minor bug fix to acpi code, don't skip over dotfiles.
+  * Patch from Vincent Bernat adding support for 2.6.21, which changes
+    yet again where the ACPI version number is stored. Closes: #423612
 
- -- Joey Hess <joeyh@debian.org>  Wed, 24 Jan 2007 22:18:51 -0500
+ -- Joey Hess <joeyh@debian.org>  Mon, 14 May 2007 14:23:09 -0400
 
 wmbattery (2.26) unstable; urgency=medium
 
