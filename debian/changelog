@@ -1,3 +1,9 @@
+wmbattery (2.29) UNRELEASED; urgency=low
+
+  * Update to new menu policy.
+
+ -- Joey Hess <joeyh@debian.org>  Sun, 08 Jul 2007 16:39:36 -0400
+
 wmbattery (2.28) unstable; urgency=low
 
   * Correct off-by-one in acpi.c
