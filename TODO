@@ -4,7 +4,6 @@
 * Allow user-settable colors, like asclock does.
 * Improve the battery lifetime estimation algo.
 * Break the ACPI code out into a proper standalone library (already 2 other
-  programs use it), preferably with a maintainer other than me, as I
-  currently have no ACPI devices.
+  programs use it).
 * Make -b 0 display an overall average of the status of all batteries,
   much like apm does on multi-battery laptops.
