@@ -1,9 +1,9 @@
-wmbattery (2.29) UNRELEASED; urgency=low
+wmbattery (2.29) unstable; urgency=low
 
   * Update to new menu policy.
   * The repository has moved from svn to git.
 
- -- Joey Hess <joeyh@debian.org>  Mon, 15 Oct 2007 23:43:06 -0400
+ -- Joey Hess <joeyh@debian.org>  Fri, 19 Oct 2007 21:14:22 -0400
 
 wmbattery (2.28) unstable; urgency=low
 
