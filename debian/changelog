@@ -1,7 +1,7 @@
 wmbattery (2.30) UNRELEASED; urgency=low
 
   * My new battery has a design capacity of 7800 mAh and yet its
-    last full capacity was 9488, and it's current charged to 8540.
+    last full capacity was 9488, and its currently charged to 8540.
     Deal with this wonderful miracle^W^Wcrap hardware by taking the max
     of the design or last full capacities.
 
