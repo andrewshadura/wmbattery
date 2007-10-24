@@ -68,6 +68,7 @@ char *acpi_labels_20020214[] = {
 	"thermal_zone",
 #endif
 	"state:",
+	"last full capacity:",
 	NULL
 };
 
@@ -128,18 +129,32 @@ char *get_acpi_value (const char *file, const char *key) {
 	return scan_acpi_value(buf, key);
 }
 
-/* Returns the design capacity of a battery. */
+/* Returns the maximum capacity of a battery.
+ *
+ * Note that this returns the highest possible capacity for the battery,
+ * even if it can no longer charge that fully. So normally it uses the
+ * design capacity. While the last full capacity of the battery should
+ * never exceed the design capacity, some silly hardware might report
+ * that it does. So if the last full capacity is greater, it will be
+ * returned.
+ */
 int get_acpi_batt_capacity(int battery) {
-	int cap;
-	char *caps=get_acpi_value(acpi_batt_info[battery], acpi_labels[label_design_capacity]);
-	if (caps == NULL)
-		cap=0; /* battery not present */
+	int dcap, lcap;
+	char *dcaps=get_acpi_value(acpi_batt_info[battery], acpi_labels[label_design_capacity]);
+	char *lcaps=get_acpi_value(acpi_batt_info[battery], acpi_labels[label_last_full_capacity]);
+	if (dcaps == NULL)
+		dcap=0; /* battery not present */
 	else
-		cap=atoi(caps);
+		dcap=atoi(dcaps);
 	/* This is ACPI's broken way of saying that there is no battery. */
-	if (cap == 655350)
+	if (dcap == 655350)
 		return 0;
-	return cap;
+	if (lcaps != NULL) {
+		lcap=atoi(lcaps);
+		if (lcap > dcap)
+			return lcap;
+	}
+	return dcap;
 }
 
 /* Comparison function for qsort. */
@@ -198,7 +213,6 @@ int find_items (char *itemname, char infoarray[ACPI_MAXITEM][128],
 int find_batteries(void) {
 	int i;
 	acpi_batt_count = find_items(acpi_labels[label_battery], acpi_batt_info, acpi_batt_status);
-	/* Read in the last charged capacity of the batteries. */
 	for (i = 0; i < acpi_batt_count; i++)
 		acpi_batt_capacity[i] = get_acpi_batt_capacity(i);
 	return acpi_batt_count;

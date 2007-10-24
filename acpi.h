@@ -59,6 +59,7 @@ enum acpi_labels_items {
 	label_thermal,
 #endif
 	label_ac_state,
+	label_last_full_capacity,
 };
 
 /* This is set to point to a list of strings used for the given acpi
