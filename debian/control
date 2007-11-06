@@ -5,6 +5,7 @@ Build-Depends: debhelper (>= 4), libxext-dev, libxpm-dev, autoconf, libapm-dev, 
 Maintainer: Joey Hess <joeyh@debian.org>
 Standards-Version: 3.7.2
 Vcs-Git: git://git.kitenet.net/wmbattery
+Homepage: http://kitenet.net/~joey/code/wmbattery/
 
 Package: wmbattery
 Architecture: any
