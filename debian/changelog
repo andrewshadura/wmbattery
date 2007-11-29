@@ -1,3 +1,10 @@
+wmbattery (2.31) UNRELEASED; urgency=low
+
+  * Further fix for my strange battery. If the present capacity is larger
+    than the maximum capacity, rescan to figure out the new max capacity.
+
+ -- Joey Hess <joeyh@debian.org>  Fri, 23 Nov 2007 08:17:51 -0500
+
 wmbattery (2.30) unstable; urgency=low
 
   * My new battery has a design capacity of 7800 mAh and yet its

@@ -401,6 +401,11 @@ int acpi_read (int battery, apm_info *info) {
 			 * buf below this point! */
 			acpi_batt_capacity[battery] = get_acpi_batt_capacity(battery);
 		}
+		else if (pcap > acpi_batt_capacity[battery]) {
+			/* Battery is somehow charged to greater than max
+			 * capacity. Rescan for a new max capacity. */
+			find_batteries();
+		}
 		
 		if (pcap) {
 			/* percentage = (current_capacity / max capacity) * 100 */
