@@ -113,7 +113,7 @@ inline char *scan_acpi_value (const char *buf, const char *key) {
 	static char ret[256];
 	
 	if ((ptr = strstr(buf, key))) {
-		if (sscanf(ptr + strlen(key), "%s", ret) == 1)
+		if (sscanf(ptr + strlen(key), "%255s", ret) == 1)
 			return ret;
 	}
 	return NULL;

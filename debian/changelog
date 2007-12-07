@@ -1,9 +1,11 @@
-wmbattery (2.32) UNRELEASED; urgency=low
+wmbattery (2.32) unstable; urgency=low
 
   * Guard some divisions against division by zero. I've never seen that
     happen and can't reproduce it, but see #454766.
+  * Merge acpi change from procmeter3: Limit string length when reading from
+    /proc/.
 
- -- Joey Hess <joeyh@debian.org>  Fri, 07 Dec 2007 14:56:01 -0500
+ -- Joey Hess <joeyh@debian.org>  Fri, 07 Dec 2007 14:56:41 -0500
 
 wmbattery (2.31) unstable; urgency=low
 
