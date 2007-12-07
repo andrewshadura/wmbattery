@@ -362,7 +362,10 @@ int acpi_read (int battery, apm_info *info) {
 				info->battery_status = BATTERY_STATUS_CHARGING;
 				info->ac_line_status = 1;
 				info->battery_flags = info->battery_flags | BATTERY_FLAGS_CHARGING;
-				info->battery_time = -1 * (float) (acpi_batt_capacity[battery] - pcap) / (float) rate * 60;
+				if (rate)
+					info->battery_time = -1 * (float) (acpi_batt_capacity[battery] - pcap) / (float) rate * 60;
+				else
+					info->battery_time = 0;
 				if (abs(info->battery_time) < 0.5)
 					info->battery_time = 0;
 			}
@@ -407,7 +410,7 @@ int acpi_read (int battery, apm_info *info) {
 			find_batteries();
 		}
 		
-		if (pcap) {
+		if (pcap && acpi_batt_capacity[battery]) {
 			/* percentage = (current_capacity / max capacity) * 100 */
 			info->battery_percentage = (float) pcap / (float) acpi_batt_capacity[battery] * 100;
 		}
