@@ -140,20 +140,25 @@ char *get_acpi_value (const char *file, const char *key) {
  */
 int get_acpi_batt_capacity(int battery) {
 	int dcap, lcap;
-	char *dcaps=get_acpi_value(acpi_batt_info[battery], acpi_labels[label_design_capacity]);
-	char *lcaps=get_acpi_value(acpi_batt_info[battery], acpi_labels[label_last_full_capacity]);
-	if (dcaps == NULL)
+	char *s;
+
+	s=get_acpi_value(acpi_batt_info[battery], acpi_labels[label_design_capacity]);
+	if (s == NULL)
 		dcap=0; /* battery not present */
 	else
-		dcap=atoi(dcaps);
+		dcap=atoi(s);
+
 	/* This is ACPI's broken way of saying that there is no battery. */
 	if (dcap == 655350)
 		return 0;
-	if (lcaps != NULL) {
-		lcap=atoi(lcaps);
+
+	s=get_acpi_value(acpi_batt_info[battery], acpi_labels[label_last_full_capacity]);
+	if (s != NULL) {
+		lcap=atoi(s);
 		if (lcap > dcap)
 			return lcap;
 	}
+
 	return dcap;
 }
 

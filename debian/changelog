@@ -1,3 +1,11 @@
+wmbattery (2.33) unstable; urgency=low
+
+  * Correct issue with the statically allocated string returned by
+    get_acpi_value that caused it to only look at last full capacity and never
+    really at design capacity.
+
+ -- Joey Hess <joeyh@debian.org>  Sat, 22 Dec 2007 22:26:38 -0500
+
 wmbattery (2.32) unstable; urgency=low
 
   * Guard some divisions against division by zero. I've never seen that
