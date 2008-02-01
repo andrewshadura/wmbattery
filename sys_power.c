@@ -173,11 +173,16 @@ int sys_power_read (int battery, apm_info *info) {
 	/* Work out if the battery is present, and what percentage of full
 	 * it is and how much time is left. */
 	if (strcmp(get_sys_power_value(sys_power_batt_dirs[battery], "present"), "1") == 0) {
-		int charge = atoi(get_sys_power_value(sys_power_batt_dirs[battery], "charge_now"));
-		int current = atoi(get_sys_power_value(sys_power_batt_dirs[battery], "current_now"));
+		int charge, current;
+		
+		charge = atoi(get_sys_power_value(sys_power_batt_dirs[battery], "charge_now"));
+		/* Use average if it's available. */
+		current = atoi(get_sys_power_value(sys_power_batt_dirs[battery], "current_avg"));
+		if (! current)
+			current = atoi(get_sys_power_value(sys_power_batt_dirs[battery], "current_now"));
 
 		if (current) {
-			/* time remaining = (charge / current) */
+			/* time remaining = (current_capacity / discharge rate) */
 			info->battery_time = (float) charge / (float) current * 60;
 		}
 		else {
@@ -198,30 +203,6 @@ int sys_power_read (int battery, apm_info *info) {
 			 * capacity. Rescan for a new max capacity. */
 			sys_power_batt_capacity[battery] = get_sys_power_batt_capacity(battery);
 		}
-
-		status = get_sys_power_value(sys_power_batt_dirs[battery], "status");
-		if (strcmp(status, "Discharging") == 0) {
-			info->battery_status = BATTERY_STATUS_CHARGING;
-			/* Explicit power check used here
-			 * because AC power might be on even if a
-			 * battery is discharging in some cases. */
-			info->ac_line_status = sys_power_on_ac();
-		}
-		else if (strcmp(status, "Charging") == 0) {
-			info->battery_status = BATTERY_STATUS_CHARGING;
-			info->ac_line_status = 1;
-			info->battery_flags = info->battery_flags | BATTERY_FLAGS_CHARGING;
-			if (current)
-				info->battery_time = -1 * (float) (sys_power_batt_capacity[battery] - charge) / (float) current * 60;
-			else
-				info->battery_time = 0;
-			if (abs(info->battery_time) < 0.5)
-				info->battery_time = 0;
-		}
-		else {
-			fprintf(stderr, "unknown battery status: %s\n", status);
-			info->battery_status = BATTERY_STATUS_ABSENT;
-		}
 		
 		if (current && sys_power_batt_capacity[battery]) {
 			/* percentage = (current_capacity / max capacity) * 100 */
@@ -231,6 +212,42 @@ int sys_power_read (int battery, apm_info *info) {
 			info->battery_percentage = -1;
 		}
 
+		status = get_sys_power_value(sys_power_batt_dirs[battery], "status");
+		if (strcasecmp(status, "discharging") == 0) {
+			info->battery_status = BATTERY_STATUS_CHARGING;
+			/* Explicit power check used here
+			 * because AC power might be on even if a
+			 * battery is discharging in some cases. */
+			info->ac_line_status = sys_power_on_ac();
+			if (! info->ac_line_status) {
+				/* Check for critical or low status. */ 
+				if (info->battery_percentage < 1) {
+					info->battery_status = BATTERY_STATUS_CRITICAL;
+				}
+				else if (info->battery_percentage <= 10) {
+					info->battery_status = BATTERY_STATUS_LOW;
+				}
+			}
+		}
+		else if (strcasecmp(status, "charging") == 0) {
+			info->battery_status = BATTERY_STATUS_CHARGING;
+			info->ac_line_status = 1;
+			info->battery_flags = info->battery_flags | BATTERY_FLAGS_CHARGING;
+			printf("charging; max cap: %i, charge: %i, current: %i\n", sys_power_batt_capacity[battery], charge, current);
+			if (current) {
+				info->battery_time = -1 * (float) (sys_power_batt_capacity[battery] - charge) / (float) current * 60;
+				printf("time est: %i\n", info->battery_time);
+			}
+			else {
+				info->battery_time = 0;
+			}
+			if (abs(info->battery_time) < 0.5)
+				info->battery_time = 0;
+		}
+		else {
+			fprintf(stderr, "unknown battery status: %s\n", status);
+			info->battery_status = BATTERY_STATUS_ABSENT;
+		}
 	}
 	else {
 		info->battery_percentage = 0;
