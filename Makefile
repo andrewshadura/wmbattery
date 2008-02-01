@@ -21,8 +21,8 @@ install: all
 uninstall:
 	rm -rf $(bindir)/wmbattery $(man1dir)/wmbattery.1x $(icondir)
 
-wmbattery: wmbattery.o acpi.o sonypi.o
-	$(CC) $(LDFLAGS) wmbattery.o acpi.o sonypi.o -o wmbattery $(LIBS)
+wmbattery: wmbattery.o acpi.o sonypi.o sys_power.o
+	$(CC) $(LDFLAGS) wmbattery.o acpi.o sonypi.o sys_power.o -o wmbattery $(LIBS)
 
 wmbattery.o: wmbattery.c wmbattery.h
 

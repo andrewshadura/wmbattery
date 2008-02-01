@@ -1,3 +1,11 @@
+wmbattery (2.34) UNRELEASED; urgency=low
+
+  * Add support for the new ACPI_SYSFS_POWER kernel interface in 2.6.24.
+    (Still quite rough and probably gets a few things wrong.)
+    Closes: #456247
+
+ -- Joey Hess <joeyh@debian.org>  Fri, 01 Feb 2008 15:28:53 -0500
+
 wmbattery (2.33) unstable; urgency=low
 
   * Correct issue with the statically allocated string returned by

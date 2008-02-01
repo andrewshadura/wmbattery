@@ -21,6 +21,7 @@
 #include "mask.xbm"
 #include "sonypi.h"
 #include "acpi.h"
+#include "sys_power.h"
 
 Pixmap images[NUM_IMAGES];
 Window root, iconwin, win;
@@ -35,6 +36,7 @@ char *crit_audio;
 int crit_audio_size;
 
 int battnum = 1;
+int use_sys_power = 0;
 int use_sonypi = 0;
 int use_acpi = 0;
 int delay = 0;
@@ -505,7 +507,11 @@ void alarmhandler(int sig) {
 	int old_status;
 
 	old_status = cur_info.battery_status;
-	if (use_acpi) {
+	if (use_sys_power) {
+		if (sys_power_read(battnum, &cur_info) != 0)
+			error("Cannot read " SYS_POWER " information.");
+	}
+	else if (use_acpi) {
 		if (acpi_read(battnum, &cur_info) != 0)
 			error("Cannot read ACPI information.");
 	}
@@ -551,26 +557,37 @@ void alarmhandler(int sig) {
 	alarm(delay);
 }
 
+void check_battery_num(int real, int requested) {
+	if (requested > real || requested < 1) {
+		error("There %s only %i batter%s, and you asked for number %i.",
+			real == 1 ? "is" : "are",
+			real,
+			real == 1 ? "y" : "ies",
+			requested);
+	}
+}
+
 int main(int argc, char *argv[]) {
 	make_window(parse_commandline(argc, argv), argc ,argv);
 
+	/* Check for SYS_POWER support. */
+	if (sys_power_supported() && sys_power_batt_count > 0) {
+		check_battery_num(sys_power_batt_count, battnum);
+		use_sys_power = 1;
+		if (! delay)
+			delay = 1;
+	}
 	/*  Check for APM support (returns 0 on success). */
-	if (apm_exists() == 0) {
+	else if (apm_exists() == 0) {
 		if (! delay)
 			delay = 1;
 	}
 	/* Check for ACPI support. */
 	else if (acpi_supported() && acpi_batt_count > 0) {
-		if (battnum > acpi_batt_count || battnum < 1) {
-			error("There %s only %i batter%s, and you asked for number %i.",
-					acpi_batt_count == 1 ? "is" : "are",
-					acpi_batt_count,
-					acpi_batt_count == 1 ? "y" : "ies",
-					battnum);
-		}
+		check_battery_num(acpi_batt_count, battnum);
 		use_acpi = 1;
 		if (! delay)
-			delay = 3; /* sigh */
+			delay = 3; /* slow interface! */
 	}
 	else if (sonypi_supported()) {
 		use_sonypi = 1;
@@ -581,7 +598,7 @@ int main(int argc, char *argv[]) {
 	}
 	else {
 	
-		error("No APM, ACPI, or SPIC support in kernel.");
+		error("No APM, ACPI, " SYS_POWER ", or SPIC support in kernel.");
 	}
 		
 	load_images();
