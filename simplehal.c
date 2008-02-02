@@ -11,20 +11,17 @@
 
 static LibHalContext *hal_ctx;
 
-char *udi_base = "/org/freedesktop/Hal/devices";
+int num_ac_adapters = 0;
+int num_batteries = 0;
+char **ac_adapters = NULL;
+char **batteries = NULL;
 
-char *gen_udi (const char *device) {
-	static char ret[256];
-	sprintf(ret, "%s/%s", udi_base, device);
-	return ret;
-}
-
-signed int get_hal_int (const char *device, const char *key) {
+signed int get_hal_int (const char *udi, const char *key) {
 	int ret;
 	DBusError error;
 
 	dbus_error_init(&error);
-	ret = libhal_device_get_property_int (hal_ctx, gen_udi(device), key, &error);
+	ret = libhal_device_get_property_int (hal_ctx, udi, key, &error);
 	
 	if (dbus_error_is_set (&error)) {
 		fprintf(stderr, "error: libhal_device_get_property_int: %s: %s\n",
@@ -35,12 +32,12 @@ signed int get_hal_int (const char *device, const char *key) {
 	return ret;
 }
 
-signed int get_hal_bool (const char *device, const char *key) {
+signed int get_hal_bool (const char *udi, const char *key) {
 	int ret;
 	DBusError error;
 
 	dbus_error_init(&error);
-	ret = libhal_device_get_property_bool (hal_ctx, gen_udi(device), key, &error);
+	ret = libhal_device_get_property_bool (hal_ctx, udi, key, &error);
 	
 	if (dbus_error_is_set (&error)) {
 		fprintf(stderr, "error: libhal_device_get_property_int: %s: %s\n",
@@ -50,6 +47,31 @@ signed int get_hal_bool (const char *device, const char *key) {
 	}
 	return ret;
 }
+
+void find_devices (void) {
+	DBusError error;
+
+	dbus_error_init(&error);
+
+	if (ac_adapters)
+		libhal_free_string_array(ac_adapters);
+	ac_adapters = libhal_find_device_by_capability(hal_ctx, "ac_adapter",
+		&num_ac_adapters, &error);
+	if (dbus_error_is_set (&error)) {
+		fprintf (stderr, "error: %s: %s\n", error.name, error.message);
+		LIBHAL_FREE_DBUS_ERROR (&error);
+	}
+
+	if (batteries)
+		libhal_free_string_array(batteries);
+	batteries = libhal_find_device_by_capability(hal_ctx, "battery",
+		&num_batteries, &error);
+	if (dbus_error_is_set (&error)) {
+		fprintf (stderr, "error: %s: %s\n", error.name, error.message);
+		LIBHAL_FREE_DBUS_ERROR (&error);
+	}
+}
+
 
 int simplehal_supported (void) {
 	DBusError error;
@@ -65,36 +87,57 @@ int simplehal_supported (void) {
 	}
 	if ((hal_ctx = libhal_ctx_new()) == NULL) {
 		fprintf(stderr, "error: libhal_ctx_new\n");
+		LIBHAL_FREE_DBUS_ERROR(&error);
 		return 0;
 	}
 	if (!libhal_ctx_set_dbus_connection (hal_ctx, conn)) {
 		fprintf(stderr, "error: libhal_ctx_set_dbus_connection: %s: %s\n",
 			 error.name, error.message);
+		LIBHAL_FREE_DBUS_ERROR(&error);
 		return 0;
 	}
 	if (!libhal_ctx_init(hal_ctx, &error)) {
 		if (dbus_error_is_set(&error)) {
 			fprintf(stderr, "error: libhal_ctx_init: %s: %s\n", error.name, error.message);
-			dbus_error_free(&error);
+			LIBHAL_FREE_DBUS_ERROR (&error);
 		}
 		fprintf(stderr, "Could not initialise connection to hald.\n"
 				 "Normally this means the HAL daemon (hald) is not running or not ready.\n");
 		return 0;
 	}
 
+	find_devices();
+
 	return 1;
 }
 
 /* Fill the passed apm_info struct. */
 int simplehal_read (int battery, apm_info *info) {
-	char device[255];
+	char *device;
+	int i;
+
+	/* Allow a battery that was not present before to appear. */
+	if (battery > num_batteries) {
+		find_devices();
+	}
 
 	info->battery_flags = 0;
 	info->using_minutes = 0;
-	info->ac_line_status = (get_hal_bool("computer_power_supply", "ac_adapter.present") == 1);
 
-	/* XXX There are probably better ways to enumerate batteries... */
-	sprintf(device, "computer_power_supply_%i", battery - 1);
+	info->ac_line_status=0;
+	for (i = 0 ; i < num_ac_adapters && ! info->ac_line_status ; i++) {
+		info->ac_line_status = (get_hal_bool(ac_adapters[i], "ac_adapter.present") == 1);
+	}
+
+	if (battery > num_batteries) {
+		info->battery_percentage = 0;
+		info->battery_time = 0;
+		info->battery_status = BATTERY_STATUS_ABSENT;
+		return 0;
+	}
+	else {
+		device=batteries[battery-1];
+	}
 
 	if (get_hal_bool(device, "battery.present") != 1) {
 		info->battery_percentage = 0;
