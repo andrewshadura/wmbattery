@@ -1,6 +1,10 @@
 wmbattery (2.35) UNRELEASED; urgency=low
 
   * Don't spew error messages if optional hal properties are not available.
+  * Only check to see if a battery is charging if hal reports there is AC
+    power. This is perhaps not 100% correct in systems with multiple batteries
+    that may cross-charge when off AC, but it's faster and it avoids bugs in
+    hal (#463740).
 
  -- Joey Hess <joeyh@debian.org>  Sat, 02 Feb 2008 16:23:24 -0500
 
