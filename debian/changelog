@@ -1,4 +1,4 @@
-wmbattery (2.34) UNRELEASED; urgency=low
+wmbattery (2.34) unstable; urgency=low
 
   * Bit the bullet, stopped trying to track the kernel's ever changing
     interfaces, and added support for querying battery information from hal.
@@ -8,7 +8,7 @@ wmbattery (2.34) UNRELEASED; urgency=low
     Closes: #456247, #246641, #290712, #393616, #456248
   * Fix -e option.
 
- -- Joey Hess <joeyh@debian.org>  Fri, 01 Feb 2008 15:28:53 -0500
+ -- Joey Hess <joeyh@debian.org>  Fri, 01 Feb 2008 21:36:39 -0500
 
 wmbattery (2.33) unstable; urgency=low
 
