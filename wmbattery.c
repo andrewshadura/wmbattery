@@ -21,7 +21,9 @@
 #include "mask.xbm"
 #include "sonypi.h"
 #include "acpi.h"
-#include "sys_power.h"
+#ifdef HAL
+#include "simplehal.h"
+#endif
 
 Pixmap images[NUM_IMAGES];
 Window root, iconwin, win;
@@ -36,7 +38,9 @@ char *crit_audio;
 int crit_audio_size;
 
 int battnum = 1;
-int use_sys_power = 0;
+#ifdef HAL
+int use_simplehal = 0;
+#endif
 int use_sonypi = 0;
 int use_acpi = 0;
 int delay = 0;
@@ -244,7 +248,7 @@ char *parse_commandline(int argc, char *argv[]) {
 		  case 'c':
 			critical_pct = atoi(optarg);
 			break;
-		  case 'r':
+		  case 'e':
 			always_estimate_remaining = 1;
 			break;
 		  case 'a':
@@ -507,14 +511,16 @@ void alarmhandler(int sig) {
 	int old_status;
 
 	old_status = cur_info.battery_status;
-	if (use_sys_power) {
-		if (sys_power_read(battnum, &cur_info) != 0)
-			error("Cannot read " SYS_POWER " information.");
-	}
-	else if (use_acpi) {
+	if (use_acpi) {
 		if (acpi_read(battnum, &cur_info) != 0)
 			error("Cannot read ACPI information.");
 	}
+#ifdef HAL
+	else if (use_simplehal) {
+		if (simplehal_read(battnum, &cur_info) != 0)
+			error("Cannot read HAL information.");
+	}
+#endif
 	else if (! use_sonypi) {
 		if (apm_read(&cur_info) != 0)
 			error("Cannot read APM information.");
@@ -570,18 +576,19 @@ void check_battery_num(int real, int requested) {
 int main(int argc, char *argv[]) {
 	make_window(parse_commandline(argc, argv), argc ,argv);
 
-	/* Check for SYS_POWER support. */
-	if (sys_power_supported() && sys_power_batt_count > 0) {
-		check_battery_num(sys_power_batt_count, battnum);
-		use_sys_power = 1;
-		if (! delay)
-			delay = 1;
-	}
 	/*  Check for APM support (returns 0 on success). */
-	else if (apm_exists() == 0) {
+	if (apm_exists() == 0) {
 		if (! delay)
 			delay = 1;
 	}
+#ifdef HAL
+	/* Check for hal support. */
+	else if (simplehal_supported()) {
+		use_simplehal = 1;
+		if (! delay)
+			delay = 2;
+	}
+#endif
 	/* Check for ACPI support. */
 	else if (acpi_supported() && acpi_batt_count > 0) {
 		check_battery_num(acpi_batt_count, battnum);
@@ -597,8 +604,7 @@ int main(int argc, char *argv[]) {
 			delay = 1;
 	}
 	else {
-	
-		error("No APM, ACPI, " SYS_POWER ", or SPIC support in kernel.");
+		error("No APM, ACPI, HAL or SPIC support detected.");
 	}
 		
 	load_images();

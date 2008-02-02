@@ -21,8 +21,18 @@ install: all
 uninstall:
 	rm -rf $(bindir)/wmbattery $(man1dir)/wmbattery.1x $(icondir)
 
-wmbattery: wmbattery.o acpi.o sonypi.o sys_power.o
-	$(CC) $(LDFLAGS) wmbattery.o acpi.o sonypi.o sys_power.o -o wmbattery $(LIBS)
+OBJS=wmbattery.o acpi.o sonypi.o
+
+ifdef USE_HAL
+LIBS+=$(shell pkg-config --libs hal)
+OBJS+=simplehal.o
+CFLAGS+=-DHAL
+simplehal.o: simplehal.c
+	$(CC) $(CFLAGS) $(shell pkg-config --cflags hal) -c simplehal.c -o simplehal.o
+endif
+
+wmbattery: $(OBJS)
+	$(CC) -o wmbattery $(LDFLAGS) $(OBJS) $(LIBS)
 
 wmbattery.o: wmbattery.c wmbattery.h
 

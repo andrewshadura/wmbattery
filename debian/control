@@ -1,7 +1,7 @@
 Source: wmbattery
 Section: x11
 Priority: extra
-Build-Depends: debhelper (>= 4), libxext-dev, libxpm-dev, autoconf, libapm-dev, dpkg-dev (>= 1.9.0), libxt-dev
+Build-Depends: debhelper (>= 4), libxext-dev, libxpm-dev, autoconf, libapm-dev, dpkg-dev (>= 1.9.0), libxt-dev, libhal-dev
 Maintainer: Joey Hess <joeyh@debian.org>
 Standards-Version: 3.7.2
 Vcs-Git: git://git.kitenet.net/wmbattery
@@ -10,6 +10,7 @@ Homepage: http://kitenet.net/~joey/code/wmbattery/
 Package: wmbattery
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
+Recommends: hal
 Suggests: wmaker
 Description: display laptop battery info, dockable in WindowMaker
  wmbattery displays the status of your laptop's battery in a small icon.
@@ -20,6 +21,6 @@ Description: display laptop battery info, dockable in WindowMaker
  There's nothing in the program that makes it require WindowMaker, except
  maybe the look. It can be docked in WindowMaker or AfterStep's dock.
  .
- wmbattery can use APM, ACPI, or even the SPIC that is in some Sony laptops.
- With ACPI, it supports multi-battery machines, and can estimate how long
+ wmbattery can use HAL, APM, ACPI, or even the SPIC that is in some Sony
+ laptops. It supports multi-battery machines, and can estimate how long
  it will take the battery to finish charging or discharging.

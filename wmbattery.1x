@@ -11,7 +11,7 @@ is a battery monitor.  It is used to visually display the system's battery
 status.
 .PP
 .B wmbattery
-can get battery information using /sys/class/power_supply, APM, /proc/acpi, or
+can get battery information using HAL, APM, ACPI, or
 the SPIC controller in some Sony laptops. You need to build your kernel with
 support for at least one of these for the program to work.
 .B wmbattery
@@ -66,9 +66,7 @@ it, it will turn red.
 Display list of command-line options.
 .TP
 .B \-w secs
-Pause this many seconds between updates. Defaults to 1 for most things, but
-3 for the /proc/acpi interface (since that interfaces takes quite a bit more
-CPU power).
+Pause this many seconds between updates.
 .TP
 .B \-d display
 Use the designated X display.
@@ -77,9 +75,9 @@ Use the designated X display.
 Specify geometry. This specifies position, not size.
 .TP
 .B \-b battnum
-Display the given battery. Only of use with the /sys/class/power_supply or 
-/proc/acpi interfaces on systems with more than one battery. The default is
-to display the first battery found.
+Display the given battery. Only of use with the HAL or ACPI interfaces on
+systems with more than one battery. The default is to display the first
+battery found.
 .TP
 .B \-l percent
 Set the percentage at which the battery is considered to be running low. By

@@ -1,8 +1,12 @@
 wmbattery (2.34) UNRELEASED; urgency=low
 
-  * Add support for the new ACPI_SYSFS_POWER kernel interface in 2.6.24.
-    (Still quite rough and probably gets a few things wrong.)
-    Closes: #456247
+  * Bit the bullet, stopped trying to track the kernel's ever changing
+    interfaces, and added support for querying battery information from hal.
+    Support for the old kernel interfaces (APM, ACPI, etc) is still present,
+    but to use new interfaces such 2.6.24's /sys/class/power_adapter, you'll
+    have to have dbus and hal.
+    Closes: #456247, #246641, #290712, #393616, #456248
+  * Fix -e option.
 
  -- Joey Hess <joeyh@debian.org>  Fri, 01 Feb 2008 15:28:53 -0500
 
