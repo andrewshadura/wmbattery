@@ -1,4 +1,4 @@
-wmbattery (2.35) UNRELEASED; urgency=low
+wmbattery (2.35) unstable; urgency=low
 
   * Don't spew error messages if optional hal properties are not available.
   * Only check to see if a battery is charging if hal reports there is AC
@@ -6,7 +6,7 @@ wmbattery (2.35) UNRELEASED; urgency=low
     that may cross-charge when off AC, but it's faster and it avoids bugs in
     hal (#463740).
 
- -- Joey Hess <joeyh@debian.org>  Sat, 02 Feb 2008 16:23:24 -0500
+ -- Joey Hess <joeyh@debian.org>  Sat, 02 Feb 2008 17:28:37 -0500
 
 wmbattery (2.34) unstable; urgency=low
 
