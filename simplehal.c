@@ -16,7 +16,7 @@ int num_batteries = 0;
 char **ac_adapters = NULL;
 char **batteries = NULL;
 
-signed int get_hal_int (const char *udi, const char *key) {
+signed int get_hal_int (const char *udi, const char *key, int optional) {
 	int ret;
 	DBusError error;
 
@@ -24,15 +24,16 @@ signed int get_hal_int (const char *udi, const char *key) {
 	ret = libhal_device_get_property_int (hal_ctx, udi, key, &error);
 	
 	if (dbus_error_is_set (&error)) {
-		fprintf(stderr, "error: libhal_device_get_property_int: %s: %s\n",
-			 error.name, error.message);
+		if (! optional)
+			fprintf(stderr, "error: libhal_device_get_property_int: %s: %s\n",
+				 error.name, error.message);
 		dbus_error_free (&error);
 		return -1;
 	}
 	return ret;
 }
 
-signed int get_hal_bool (const char *udi, const char *key) {
+signed int get_hal_bool (const char *udi, const char *key, int optional) {
 	int ret;
 	DBusError error;
 
@@ -40,8 +41,9 @@ signed int get_hal_bool (const char *udi, const char *key) {
 	ret = libhal_device_get_property_bool (hal_ctx, udi, key, &error);
 	
 	if (dbus_error_is_set (&error)) {
-		fprintf(stderr, "error: libhal_device_get_property_int: %s: %s\n",
-			 error.name, error.message);
+		if (! optional)
+			fprintf(stderr, "error: libhal_device_get_property_int: %s: %s\n",
+				 error.name, error.message);
 		dbus_error_free (&error);
 		return -1;
 	}
@@ -126,7 +128,7 @@ int simplehal_read (int battery, apm_info *info) {
 
 	info->ac_line_status=0;
 	for (i = 0 ; i < num_ac_adapters && ! info->ac_line_status ; i++) {
-		info->ac_line_status = (get_hal_bool(ac_adapters[i], "ac_adapter.present") == 1);
+		info->ac_line_status = (get_hal_bool(ac_adapters[i], "ac_adapter.present", 0) == 1);
 	}
 
 	if (battery > num_batteries) {
@@ -139,7 +141,7 @@ int simplehal_read (int battery, apm_info *info) {
 		device=batteries[battery-1];
 	}
 
-	if (get_hal_bool(device, "battery.present") != 1) {
+	if (get_hal_bool(device, "battery.present", 0) != 1) {
 		info->battery_percentage = 0;
 		info->battery_time = 0;
 		info->battery_status = BATTERY_STATUS_ABSENT;
@@ -148,9 +150,9 @@ int simplehal_read (int battery, apm_info *info) {
 	
 	/* remaining_time and charge_level.percentage are not a mandatory
 	 * keys, so if not present, -1 will be returned */
-	info->battery_time = get_hal_int(device, "battery.remaining_time");
-	info->battery_percentage = get_hal_int(device, "battery.charge_level.percentage");
-	if (get_hal_bool(device, "battery.rechargeable.is_discharging") == 1) {
+	info->battery_time = get_hal_int(device, "battery.remaining_time", 1);
+	info->battery_percentage = get_hal_int(device, "battery.charge_level.percentage", 1);
+	if (get_hal_bool(device, "battery.rechargeable.is_discharging", 0) == 1) {
 		info->battery_status = BATTERY_STATUS_CHARGING;
 		/* charge_level.warning and charge_level.low are not
 		 * required to be available; this is good enough */
@@ -161,7 +163,7 @@ int simplehal_read (int battery, apm_info *info) {
 			info->battery_status = BATTERY_STATUS_LOW;
 		}
 	}
-	else if (get_hal_bool(device, "battery.rechargeable.is_charging") == 1) {
+	else if (get_hal_bool(device, "battery.rechargeable.is_charging", 0) == 1) {
 		info->battery_status = BATTERY_STATUS_CHARGING;
 		info->battery_flags = info->battery_flags | BATTERY_FLAGS_CHARGING;
 	}
