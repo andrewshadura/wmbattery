@@ -1,3 +1,9 @@
+wmbattery (2.37) unstable; urgency=low
+
+  * Support reconnecting to dbus if it's restarted. (AKA giant dbus-PITA)
+
+ -- Joey Hess <joeyh@debian.org>  Wed, 20 Feb 2008 22:44:00 -0500
+
 wmbattery (2.36) unstable; urgency=low
 
   * Support reconnecting to hal if the connection is closed, as happens

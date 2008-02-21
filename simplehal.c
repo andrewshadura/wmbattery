@@ -9,7 +9,8 @@
 #include <unistd.h>
 #include <libhal.h>
 
-static LibHalContext *hal_ctx;
+static DBusConnection *dbus_ctx = NULL;
+static LibHalContext *hal_ctx = NULL;
 
 int num_ac_adapters = 0;
 int num_batteries = 0;
@@ -18,11 +19,10 @@ char **batteries = NULL;
 
 int connect_hal (void) {
 	DBusError error;
-	DBusConnection *conn;
 
 	dbus_error_init(&error);
-	conn = dbus_bus_get(DBUS_BUS_SYSTEM, &error);
-	if (conn == NULL) {
+	dbus_ctx = dbus_bus_get_private(DBUS_BUS_SYSTEM, &error);
+	if (dbus_ctx == NULL) {
 		fprintf(stderr, "error: dbus_bus_get: %s: %s\n",
 			 error.name, error.message);
 		LIBHAL_FREE_DBUS_ERROR(&error);
@@ -33,7 +33,7 @@ int connect_hal (void) {
 		LIBHAL_FREE_DBUS_ERROR(&error);
 		return 0;
 	}
-	if (!libhal_ctx_set_dbus_connection (hal_ctx, conn)) {
+	if (!libhal_ctx_set_dbus_connection(hal_ctx, dbus_ctx)) {
 		fprintf(stderr, "error: libhal_ctx_set_dbus_connection: %s: %s\n",
 			 error.name, error.message);
 		LIBHAL_FREE_DBUS_ERROR(&error);
@@ -42,7 +42,7 @@ int connect_hal (void) {
 	if (!libhal_ctx_init(hal_ctx, &error)) {
 		if (dbus_error_is_set(&error)) {
 			fprintf(stderr, "error: libhal_ctx_init: %s: %s\n", error.name, error.message);
-			LIBHAL_FREE_DBUS_ERROR (&error);
+			LIBHAL_FREE_DBUS_ERROR(&error);
 		}
 		fprintf(stderr, "Could not initialise connection to hald.\n"
 				 "Normally this means the HAL daemon (hald) is not running or not ready.\n");
@@ -51,31 +51,49 @@ int connect_hal (void) {
 
 	return 1;
 }
+	
+int hal_ready (void) {
+	if (hal_ctx && dbus_connection_get_is_connected(dbus_ctx)) {
+		return 1;
+	}
+	else {
+		/* The messy business of reconnecting.
+		 * dbus's design is crap when it comes to reconnecting.
+		 * If dbus is down, can't actually close the connection to hal,
+		 * since libhal wants to use dbus to do it. */
+		if (dbus_ctx) {
+			dbus_connection_close(dbus_ctx);
+			dbus_connection_unref(dbus_ctx);
+		}
+		dbus_ctx = NULL;
+		hal_ctx = NULL;
+
+		return connect_hal();
+	}
+}
 
 signed int get_hal_int (const char *udi, const char *key, int optional) {
 	int ret;
 	DBusError error;
-	
+
+	if (! hal_ready()) {
+		return -1;
+	}
+
 	dbus_error_init(&error);
 
-	for (;;) {
-		ret = libhal_device_get_property_int (hal_ctx, udi, key, &error);
+	ret = libhal_device_get_property_int (hal_ctx, udi, key, &error);
 	
-		if (! dbus_error_is_set (&error)) {
-			return ret;
+	if (! dbus_error_is_set (&error)) {
+		return ret;
+	}
+	else {
+		if (! optional) {
+			fprintf(stderr, "error: libhal_device_get_property_int: %s: %s\n",
+				 error.name, error.message);
 		}
-		else {
-			if (strcmp(error.name, "org.freedesktop.dbus.error.disconnected") == 0 &&
-			    connect_hal()) {
-				continue; /* retry */
-			}
-			else if (! optional) {
-				fprintf(stderr, "error: libhal_device_get_property_int: %s: %s\n",
-					 error.name, error.message);
-			}
-			dbus_error_free (&error);
-			return -1;
-		}
+		dbus_error_free (&error);
+		return -1;
 	}
 }
 
@@ -83,26 +101,24 @@ signed int get_hal_bool (const char *udi, const char *key, int optional) {
 	int ret;
 	DBusError error;
 	
+	if (! hal_ready()) {
+		return -1;
+	}
+	
 	dbus_error_init(&error);
 
-	for (;;) {
-		ret = libhal_device_get_property_bool (hal_ctx, udi, key, &error);
+	ret = libhal_device_get_property_bool (hal_ctx, udi, key, &error);
 	
-		if (! dbus_error_is_set (&error)) {
-			return ret;
+	if (! dbus_error_is_set (&error)) {
+		return ret;
+	}
+	else {
+		if (! optional) {
+			fprintf(stderr, "error: libhal_device_get_property_int: %s: %s\n",
+				 error.name, error.message);
 		}
-		else {
-			if (strcmp(error.name, "org.freedesktop.dbus.error.disconnected") == 0 &&
-			    connect_hal()) {
-				continue; /* retry */
-			}
-			else if (! optional) {
-				fprintf(stderr, "error: libhal_device_get_property_int: %s: %s\n",
-					 error.name, error.message);
-			}
-			dbus_error_free (&error);
-			return -1;
-		}
+		dbus_error_free (&error);
+		return -1;
 	}
 }
 
