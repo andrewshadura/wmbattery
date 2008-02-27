@@ -2,12 +2,12 @@
  * apm.
  */
 
-#include <apm.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <libhal.h>
+#include "apm.h"
 
 static DBusConnection *dbus_ctx = NULL;
 static LibHalContext *hal_ctx = NULL;

@@ -1,3 +1,10 @@
+wmbattery (2.38) UNRELEASED; urgency=low
+
+  * Magic header file reordering to work around the disgusting
+    linux-libc-dev/libc headers conflicts (#435700). Closes: #463811
+
+ -- Joey Hess <joeyh@debian.org>  Wed, 27 Feb 2008 15:06:21 -0500
+
 wmbattery (2.37) unstable; urgency=low
 
   * Support reconnecting to dbus if it's restarted. (AKA giant dbus-PITA)
