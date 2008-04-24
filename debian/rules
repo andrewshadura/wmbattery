@@ -1,57 +1,11 @@
 #!/usr/bin/make -f
+%:
+	dh $@
 
-INSTALL_PROGRAM=install
-CFLAGS=-O2 -Wall -g
-
-build: build-stamp
-build-stamp:
-	dh_testdir
+build:
 	autoconf
-	./configure --mandir=$(shell pwd)/debian/wmbattery/usr/share/man \
-		--prefix=/usr CFLAGS="$(CFLAGS)"
-	$(MAKE)
-	touch build-stamp
-
-clean:
-	dh_testdir
-	dh_testroot
-	rm -f build-stamp
-	$(MAKE) distclean
-	dh_clean
-
-install: build
-	dh_testdir
-	dh_testroot
-	dh_clean -k
-	dh_installdirs
-	$(MAKE) prefix=debian/wmbattery/usr \
-		INSTALL_PROGRAM="$(INSTALL_PROGRAM)" install
-
-# Build architecture-independent files here.
-binary-indep: build install
-# We have nothing to do by default.
-
-# Build architecture-dependent files here.
-binary-arch: build install
-	dh_testdir
-	dh_testroot
-	dh_installdocs TODO README
-	dh_installexamples
-	dh_installmenu
-	dh_installchangelogs
-	dh_link
-	dh_strip
-	dh_compress
-	dh_fixperms
-	dh_installdeb
-	dh_shlibdeps
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
+	dh build
 
 # Not intended for use by anyone except the author.
 announcedir:
 	@echo ${HOME}/src/joeywiki/code/wmbattery/news
-
-binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install
