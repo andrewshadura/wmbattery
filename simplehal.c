@@ -114,7 +114,7 @@ signed int get_hal_bool (const char *udi, const char *key, int optional) {
 	}
 	else {
 		if (! optional) {
-			fprintf(stderr, "error: libhal_device_get_property_int: %s: %s\n",
+			fprintf(stderr, "error: libhal_device_get_property_bool: %s: %s\n",
 				 error.name, error.message);
 		}
 		dbus_error_free (&error);
