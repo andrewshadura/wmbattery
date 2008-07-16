@@ -9,8 +9,7 @@ Homepage: http://kitenet.net/~joey/code/wmbattery/
 
 Package: wmbattery
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Recommends: hal
+Depends: ${shlibs:Depends}, ${misc:Depends}, hal
 Suggests: wmaker
 Description: display laptop battery info, dockable in WindowMaker
  wmbattery displays the status of your laptop's battery in a small icon.
