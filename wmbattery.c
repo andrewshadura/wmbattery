@@ -45,6 +45,7 @@ int use_sonypi = 0;
 int use_acpi = 0;
 int delay = 0;
 int always_estimate_remaining = 0;
+int granularity_estimate_remaining = 1;
 
 signed int low_pct = -1;
 signed int critical_pct = -1;
@@ -125,7 +126,8 @@ void estimate_timeleft(apm_info *cur_info) {
 	}
 
 	/* No change: decrease estimate */
-	if (percent == cur_info->battery_percentage) {
+	if ((percent - cur_info->battery_percentage)
+	    / granularity_estimate_remaining == 0) {
 		estimate -= t - estimate_time;
 		estimate_time = t;
 		if (guessed_lately && estimate < 0)
@@ -206,7 +208,7 @@ char *parse_commandline(int argc, char *argv[]) {
 	extern char *optarg;
 	
   	while (c != -1) {
-  		c=getopt(argc, argv, "hd:g:f:b:w:c:l:ea:");
+  		c=getopt(argc, argv, "hd:g:f:b:w:c:l:es:a:");
 		switch (c) {
 		  case 'h':
 			printf("Usage: wmbattery [options]\n");
@@ -218,7 +220,8 @@ char *parse_commandline(int argc, char *argv[]) {
 			printf("\t-l percent\tlow percentage\n");
 			printf("\t-c percent\tcritical percentage\n");
 			printf("\t-e\t\tuse own time estimates\n");
-			printf("\t-a file\t\twhen critical send file to /dv/audio\n");
+			printf("\t-s granularity\tignore fluctuations less than granularity%% (implies -e)\n");
+			printf("\t-a file\t\twhen critical send file to /dev/audio\n");
                		exit(0);
 		 	break;
 		  case 'd':
@@ -250,6 +253,10 @@ char *parse_commandline(int argc, char *argv[]) {
 			break;
 		  case 'e':
 			always_estimate_remaining = 1;
+			break;
+		  case 's':
+			always_estimate_remaining = 1;
+			granularity_estimate_remaining = atoi(optarg);
 			break;
 		  case 'a':
 			crit_audio_fn = strdup(optarg);

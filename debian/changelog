@@ -1,3 +1,11 @@
+wmbattery (2.40) UNRELEASED; urgency=low
+
+  * Add -s option which can be used to ignore fluctuations
+    in reported battery charge (as seen on the EeePC) when
+    using -e. Closes: #527870 (Joseph Huang)
+
+ -- Joey Hess <joeyh@debian.org>  Sat, 09 May 2009 16:41:51 -0400
+
 wmbattery (2.39) unstable; urgency=low
 
   * Use debhelper v7; rules file minimisation.
