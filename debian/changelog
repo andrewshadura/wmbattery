@@ -1,10 +1,10 @@
-wmbattery (2.40) UNRELEASED; urgency=low
+wmbattery (2.40) unstable; urgency=low
 
   * Add -s option which can be used to ignore fluctuations
     in reported battery charge (as seen on the EeePC) when
     using -e. Closes: #527870 (Joseph Huang)
 
- -- Joey Hess <joeyh@debian.org>  Sat, 09 May 2009 16:41:51 -0400
+ -- Joey Hess <joeyh@debian.org>  Sat, 09 May 2009 16:53:10 -0400
 
 wmbattery (2.39) unstable; urgency=low
 
