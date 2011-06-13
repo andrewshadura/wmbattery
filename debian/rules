@@ -2,9 +2,9 @@
 %:
 	dh $@
 
-override_dh_auto_build:
+override_dh_auto_configure:
 	autoconf
-	dh_auto_build
+	dh_auto_configure
 
 # Not intended for use by anyone except the author.
 announcedir:
