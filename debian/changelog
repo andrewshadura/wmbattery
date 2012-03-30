@@ -1,3 +1,9 @@
+wmbattery (2.41) unstable; urgency=low
+
+  * Accumulated packaging modernizations. Closes: #666370
+
+ -- Joey Hess <joeyh@debian.org>  Fri, 30 Mar 2012 10:20:17 -0400
+
 wmbattery (2.40) unstable; urgency=low
 
   * Add -s option which can be used to ignore fluctuations
