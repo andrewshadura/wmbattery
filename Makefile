@@ -1,0 +1,42 @@
+include makeinfo
+
+all: wmbattery
+
+clean:
+	rm -f wmbattery *.o
+
+distclean: clean
+	rm -f config.status config.cache config.log makeinfo config.h configure
+
+install: all
+	$(INSTALL) -d $(DESTDIR)$(bindir) $(DESTDIR)$(man1dir) $(DESTDIR)$(icondir)
+	$(INSTALL_PROGRAM) wmbattery $(DESTDIR)$(bindir)
+	$(INSTALL_DATA) $(srcdir)/wmbattery.1x $(DESTDIR)$(man1dir)/wmbattery.1x
+	$(INSTALL_DATA) $(srcdir)/*.xpm $(DESTDIR)$(icondir)
+
+uninstall:
+	rm -rf $(bindir)/wmbattery $(man1dir)/wmbattery.1x $(icondir)
+
+OBJS=wmbattery.o acpi.o sonypi.o
+
+ifdef USE_HAL
+LIBS+=$(shell pkg-config --libs hal)
+OBJS+=simplehal.o
+CFLAGS+=-DHAL
+simplehal.o: simplehal.c
+	$(CC) $(CFLAGS) $(shell pkg-config --cflags hal) -c simplehal.c -o simplehal.o
+endif
+
+wmbattery: $(OBJS)
+	$(CC) -o wmbattery $(LDFLAGS) $(OBJS) $(LIBS)
+
+wmbattery.o: wmbattery.c wmbattery.h
+
+configure: configure.ac
+	autoconf
+
+config.status: configure
+	./configure
+
+makeinfo: autoconf/makeinfo.in config.status
+	./config.status
