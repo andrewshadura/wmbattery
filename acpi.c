@@ -312,7 +312,7 @@ int acpi_supported (void) {
 				version, ACPI_VERSION);
 		return 0;
 	}
-	else if (num >= 20120111) {
+	else if (num >= 20110623) {
 	        acpi_labels = acpi_labels_new;
 	}
 	else if (num >= 20020214) {
