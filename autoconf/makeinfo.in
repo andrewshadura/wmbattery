@@ -15,4 +15,5 @@ INSTALL_PROGRAM	= @INSTALL_PROGRAM@
 LDFLAGS		= @LDFLAGS@
 LIBS		= @LIBS@
 
-USE_HAL		= 1
+#remove hal support
+#USE_HAL		= 1

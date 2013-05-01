@@ -1,3 +1,13 @@
+wmbattery (2.42) UNRELEASED; urgency=low
+
+  * Stop building with flash-in-the-pan HAL. Instead update acpi
+    interface to use /sys/class/power_supply.
+    Note that this needs acpica_version 20120111, as provided by a recent
+    linux kernel version. Closes: #613166
+    (Patch developed by Mageia.)
+
+ -- Joey Hess <joeyh@debian.org>  Tue, 30 Apr 2013 21:24:41 -0400
+
 wmbattery (2.41) unstable; urgency=low
 
   * Accumulated packaging modernizations. Closes: #666370

@@ -60,6 +60,7 @@ enum acpi_labels_items {
 #endif
 	label_ac_state,
 	label_last_full_capacity,
+	label_ac_adapter_alt,
 };
 
 /* This is set to point to a list of strings used for the given acpi

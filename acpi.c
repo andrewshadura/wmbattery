@@ -17,7 +17,8 @@
 
 #include "acpi.h"
 
-#define PROC_ACPI "/proc/acpi"
+/*define PROC_ACPI "/proc/acpi" */
+#define PROC_ACPI "/sys/class/power_supply"
 #define ACPI_MAXITEM 8
 
 int acpi_batt_count = 0;
@@ -71,6 +72,26 @@ char *acpi_labels_20020214[] = {
 	"last full capacity:",
 	NULL
 };
+
+char *acpi_labels_new[] = {
+        "uevent",
+	"uevent",
+	"BAT",
+	"AC",
+	"POWER_SUPPLY_ONLINE",
+	"POWER_SUPPLY_CHARGE_FULL_DESIGN=",
+	"POWER_SUPPLY_PRESENT=",
+	"POWER_SUPPLY_CHARGE_NOW=",
+	"POWER_SUPPLY_CURRENT_NOW=",
+	"POWER_SUPPLY_STATUS=",
+	"POWER_SUPPLY_ONLINE",
+	"POWER_SUPPLY_CHARGE_FULL=",
+	"AD",
+	NULL
+};
+
+
+
 
 char **acpi_labels = NULL;
 
@@ -182,7 +203,8 @@ int find_items (char *itemname, char infoarray[ACPI_MAXITEM][128],
 	
 	char pathname[128];
 
-	sprintf(pathname,PROC_ACPI "/%s",itemname);
+	/* sprintf(pathname,PROC_ACPI "/%s",itemname); */
+	sprintf(pathname,PROC_ACPI);
 
 	dir = opendir(pathname);
 	if (dir == NULL)
@@ -191,22 +213,22 @@ int find_items (char *itemname, char infoarray[ACPI_MAXITEM][128],
 		if (!strcmp(".", ent->d_name) || 
 		    !strcmp("..", ent->d_name))
 			continue;
-
-		devices[num_devices]=strdup(ent->d_name);
-		num_devices++;
-		if (num_devices >= ACPI_MAXITEM)
-			break;
+		if (!strncmp(itemname,ent->d_name,2)) {
+		  devices[num_devices]=strdup(ent->d_name);
+		  num_devices++;		  
+		  if (num_devices >= ACPI_MAXITEM)
+		    break;
+		}
 	}
 	closedir(dir);
-	
 	/* Sort, since readdir can return in any order. /proc/ does
 	 * sometimes list BATT2 before BATT1. */
 	qsort(devices, num_devices, sizeof(char *), _acpi_compare_strings);
 
 	for (i = 0; i < num_devices; i++) {
-		sprintf(infoarray[i], PROC_ACPI "/%s/%s/%s", itemname, devices[i],
+		sprintf(infoarray[i], PROC_ACPI "/%s/%s",devices[i],
 			acpi_labels[label_info]);
-		sprintf(statusarray[i], PROC_ACPI "/%s/%s/%s", itemname, devices[i],
+		sprintf(statusarray[i], PROC_ACPI "/%s/%s", devices[i],
 			acpi_labels[label_status]);
 		free(devices[i]);
 	}
@@ -218,8 +240,10 @@ int find_items (char *itemname, char infoarray[ACPI_MAXITEM][128],
 int find_batteries(void) {
 	int i;
 	acpi_batt_count = find_items(acpi_labels[label_battery], acpi_batt_info, acpi_batt_status);
-	for (i = 0; i < acpi_batt_count; i++)
-		acpi_batt_capacity[i] = get_acpi_batt_capacity(i);
+
+	for (i = 0; i < acpi_batt_count; i++) {
+	  acpi_batt_capacity[i] = get_acpi_batt_capacity(i);
+	}
 	return acpi_batt_count;
 }
 
@@ -227,6 +251,10 @@ int find_batteries(void) {
  * as well. */
 int find_ac_adapters(void) {
 	acpi_ac_count = find_items(acpi_labels[label_ac_adapter], acpi_ac_adapter_info, acpi_ac_adapter_status);
+	
+	if (acpi_ac_count == 0)
+	  acpi_ac_count = find_items(acpi_labels[label_ac_adapter_alt], acpi_ac_adapter_info, acpi_ac_adapter_status);
+	  
 	return acpi_ac_count;
 }
 
@@ -274,7 +302,7 @@ int acpi_supported (void) {
 			/* 2.5 kernel acpi */
 			version = get_acpi_value(PROC_ACPI "/info", "version:");
 		}
-	}
+	}	
 	if (version == NULL) {
 		return 0;
 	}
@@ -283,6 +311,9 @@ int acpi_supported (void) {
 		fprintf(stderr, "ACPI subsystem %s too is old, consider upgrading to %i.\n",
 				version, ACPI_VERSION);
 		return 0;
+	}
+	else if (num >= 20120111) {
+	        acpi_labels = acpi_labels_new;
 	}
 	else if (num >= 20020214) {
 		acpi_labels = acpi_labels_20020214;
@@ -332,10 +363,9 @@ int acpi_read (int battery, apm_info *info) {
 	
 	/* Work out if the battery is present, and what percentage of full
 	 * it is and how much time is left. */
-	if (strcmp(scan_acpi_value(buf, acpi_labels[label_present]), "yes") == 0) {
+	if (strcmp(scan_acpi_value(buf, acpi_labels[label_present]), "1") == 0) {
 		int pcap = scan_acpi_num(buf, acpi_labels[label_remaining_capacity]);
 		int rate = scan_acpi_num(buf, acpi_labels[label_present_rate]);
-
 		if (rate) {
 			/* time remaining = (current_capacity / discharge rate) */
 			info->battery_time = (float) pcap / (float) rate * 60;
@@ -356,14 +386,14 @@ int acpi_read (int battery, apm_info *info) {
 
 		state = scan_acpi_value(buf, acpi_labels[label_charging_state]);
 		if (state) {
-			if (state[0] == 'd') { /* discharging */
+			if (state[0] == 'D') { /* discharging */
 				info->battery_status = BATTERY_STATUS_CHARGING;
 				/* Expensive ac power check used here
 				 * because AC power might be on even if a
 				 * battery is discharging in some cases. */
 				info->ac_line_status = on_ac_power();
 			}
-			else if (state[0] == 'c' && state[1] == 'h') { /* charging */
+			else if (state[0] == 'C' && state[1] == 'h') { /* charging */
 				info->battery_status = BATTERY_STATUS_CHARGING;
 				info->ac_line_status = 1;
 				info->battery_flags = info->battery_flags | BATTERY_FLAGS_CHARGING;
@@ -374,12 +404,12 @@ int acpi_read (int battery, apm_info *info) {
 				if (abs(info->battery_time) < 0.5)
 					info->battery_time = 0;
 			}
-			else if (state[0] == 'o') { /* ok */
+			else if (state[0] == 'F') { /* ok */
 				/* charged, on ac power */
 				info->battery_status = BATTERY_STATUS_HIGH;
 				info->ac_line_status = 1;
 			}
-			else if (state[0] == 'c') { /* not charging, so must be critical */
+			else if (state[0] == 'C') { /* not charging, so must be critical */
 				info->battery_status = BATTERY_STATUS_CRITICAL;
 				/* Expensive ac power check used here
 				 * because AC power might be on even if a
