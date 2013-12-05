@@ -24,6 +24,9 @@
 #ifdef HAL
 #include "simplehal.h"
 #endif
+#ifdef UPOWER
+#include "upower.h"
+#endif
 
 Pixmap images[NUM_IMAGES];
 Window root, iconwin, win;
@@ -40,6 +43,9 @@ int crit_audio_size;
 int battnum = 1;
 #ifdef HAL
 int use_simplehal = 0;
+#endif
+#ifdef UPOWER
+int use_upower = 0;
 #endif
 int use_sonypi = 0;
 int use_acpi = 0;
@@ -528,6 +534,12 @@ void alarmhandler(int sig) {
 			error("Cannot read HAL information.");
 	}
 #endif
+#ifdef UPOWER
+	else if (use_upower) {
+		if (upower_read(1, &cur_info) != 0)
+			error("Cannot read UPOWER information.");
+	}
+#endif
 	else if (! use_sonypi) {
 		if (apm_read(&cur_info) != 0)
 			error("Cannot read APM information.");
@@ -596,6 +608,11 @@ int main(int argc, char *argv[]) {
 			delay = 2;
 	}
 #endif
+#ifdef UPOWER
+	else if (upower_supported()) {
+		use_upower = 1;
+	}
+#endif
 	/* Check for ACPI support. */
 	else if (acpi_supported() && acpi_batt_count > 0) {
 		check_battery_num(acpi_batt_count, battnum);
@@ -611,7 +628,7 @@ int main(int argc, char *argv[]) {
 			delay = 1;
 	}
 	else {
-		error("No APM, ACPI, HAL or SPIC support detected.");
+		error("No APM, ACPI, UPOWER, HAL or SPIC support detected.");
 	}
 		
 	load_images();

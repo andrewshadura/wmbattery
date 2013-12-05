@@ -17,3 +17,5 @@ LIBS		= @LIBS@
 
 #remove hal support
 #USE_HAL		= 1
+
+USE_UPOWER = 1

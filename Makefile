@@ -27,6 +27,14 @@ simplehal.o: simplehal.c
 	$(CC) $(CFLAGS) $(shell pkg-config --cflags hal) -c simplehal.c -o simplehal.o
 endif
 
+ifdef USE_UPOWER
+LIBS+=$(shell pkg-config --libs upower-glib)
+OBJS+=upower.o
+CFLAGS+=-DUPOWER
+upower.o: upower.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(shell pkg-config --cflags upower-glib) -c upower.c -o upower.o
+endif
+
 wmbattery: $(OBJS)
 	$(CC) -o wmbattery $(LDFLAGS) $(OBJS) $(LIBS)
 
