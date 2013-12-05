@@ -4,7 +4,9 @@ wmbattery (2.42) UNRELEASED; urgency=low
     interface to use /sys/class/power_supply.
     Note that this needs acpica_version 20120111, as provided by a recent
     linux kernel version. Closes: #613166
-    (Patch developed by Mageia.)
+    (Patch developed by Andrew Shadura.)
+  * Also added support for upower, which is used by default.
+    (Patch developed by Andrew Shadura.)
 
  -- Joey Hess <joeyh@debian.org>  Tue, 30 Apr 2013 21:24:41 -0400
 

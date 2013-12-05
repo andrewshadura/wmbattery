@@ -524,7 +524,15 @@ void alarmhandler(int sig) {
 	int old_status;
 
 	old_status = cur_info.battery_status;
+#ifdef UPOWER
+	if (use_upower) {
+		if (upower_read(1, &cur_info) != 0)
+			error("Cannot read upower information.");
+	}
+	else if (use_acpi) {
+#else
 	if (use_acpi) {
+#endif
 		if (acpi_read(battnum, &cur_info) != 0)
 			error("Cannot read ACPI information.");
 	}
@@ -532,12 +540,6 @@ void alarmhandler(int sig) {
 	else if (use_simplehal) {
 		if (simplehal_read(battnum, &cur_info) != 0)
 			error("Cannot read HAL information.");
-	}
-#endif
-#ifdef UPOWER
-	else if (use_upower) {
-		if (upower_read(1, &cur_info) != 0)
-			error("Cannot read UPOWER information.");
 	}
 #endif
 	else if (! use_sonypi) {

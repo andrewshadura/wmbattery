@@ -20,6 +20,5 @@ Description: display laptop battery info, dockable in WindowMaker
  There's nothing in the program that makes it require WindowMaker, except
  maybe the look. It can be docked in WindowMaker or AfterStep's dock.
  .
- wmbattery can use HAL, APM, ACPI, or even the SPIC that is in some Sony
- laptops. It supports multi-battery machines, and can estimate how long
+ wmbattery supports multi-battery machines, and can estimate how long
  it will take the battery to finish charging or discharging.
