@@ -1,3 +1,9 @@
+wmbattery (2.43) UNRELEASED; urgency=low
+
+  * Added -i to display as icon. Thanks, Tovar Closes: #732398
+
+ -- Joey Hess <joeyh@debian.org>  Tue, 17 Dec 2013 14:44:44 -0400
+
 wmbattery (2.42) unstable; urgency=medium
 
   * Stop building with flash-in-the-pan HAL. Instead update acpi

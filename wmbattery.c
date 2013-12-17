@@ -52,6 +52,7 @@ int use_acpi = 0;
 int delay = 0;
 int always_estimate_remaining = 0;
 int granularity_estimate_remaining = 1;
+int initial_state = WithdrawnState;
 
 signed int low_pct = -1;
 signed int critical_pct = -1;
@@ -214,13 +215,14 @@ char *parse_commandline(int argc, char *argv[]) {
 	extern char *optarg;
 	
   	while (c != -1) {
-  		c=getopt(argc, argv, "hd:g:f:b:w:c:l:es:a:");
+  		c=getopt(argc, argv, "hd:g:if:b:w:c:l:es:a:");
 		switch (c) {
 		  case 'h':
 			printf("Usage: wmbattery [options]\n");
               		printf("\t-d <display>\tselects target display\n");
                		printf("\t-h\t\tdisplay this help\n");
                         printf("\t-g +x+y\t\tposition of the window\n");
+                        printf("\t-i start \n");
 			printf("\t-b num\t\tnumber of battery to display\n");
 			printf("\t-w secs\t\tseconds between updates\n");
 			printf("\t-l percent\tlow percentage\n");
@@ -244,6 +246,9 @@ char *parse_commandline(int argc, char *argv[]) {
 					pos[0]=0;
 				}
 			}
+			break;
+		  case 'i':
+			initial_state = IconicState;
 			break;
 		  case 'b':
 			battnum = atoi(optarg);
@@ -339,7 +344,7 @@ void make_window(char *display_name, int argc, char *argv[]) {
 	XShapeCombineMask(display, iconwin, ShapeBounding, 0, 0,
 			  pixmask, ShapeSet);
 	
-	wmhints.initial_state = WithdrawnState;
+	wmhints.initial_state = initial_state;
 	wmhints.icon_window = iconwin;
 	wmhints.icon_x = sizehints.x;
 	wmhints.icon_y = sizehints.y;
