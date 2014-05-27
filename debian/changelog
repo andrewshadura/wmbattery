@@ -1,8 +1,10 @@
-wmbattery (2.43) UNRELEASED; urgency=low
+wmbattery (2.43) unstable; urgency=low
 
+  * Orphaned the package. It will probably be removed as it does not work with
+    current kernels.
   * Added -i to display as icon. Thanks, Tovar Closes: #732398
 
- -- Joey Hess <joeyh@debian.org>  Tue, 17 Dec 2013 14:44:44 -0400
+ -- Joey Hess <joeyh@debian.org>  Tue, 27 May 2014 16:01:34 -0400
 
 wmbattery (2.42) unstable; urgency=medium
 
