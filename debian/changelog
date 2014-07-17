@@ -1,3 +1,12 @@
+wmbattery (2.44) unstable; urgency=medium
+
+  * Better AC detection.
+  * Support times with upower and acpi (Closes: #740885).
+  * Use the latest upower API (Closes: #748935).
+  * Fix upower detection.
+
+ -- Andrew Shadura <andrewsh@debian.org>  Fri, 18 Jul 2014 01:14:49 +0200
+
 wmbattery (2.43) unstable; urgency=low
 
   * Orphaned the package. It will probably be removed as it does not work with
