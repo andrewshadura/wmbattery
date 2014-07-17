@@ -56,8 +56,16 @@ int upower_supported (void) {
 		return 0;
 	}
 	else {
-		g_object_unref(up);
-		return 1;
+		GPtrArray * devices = up_client_get_devices(up);
+
+		if (!devices) {
+			g_object_unref(up);
+			return 0;
+		} else {
+			g_ptr_array_unref(devices);
+			g_object_unref(up);
+			return 1;
+		}
 	}
 }
 
@@ -69,7 +77,7 @@ int upower_read(int battery, apm_info *info) {
 	up = up_client_new();
 
 	if (!up) {
-		return 0;
+		return -1;
 	}
 
 	#if !UP_CHECK_VERSION(0, 9, 99)
@@ -78,6 +86,10 @@ int upower_read(int battery, apm_info *info) {
 	#endif
 
 	devices = up_client_get_devices(up);
+
+	if (!devices) {
+		return -1;
+	}
 
 	info->battery_flags = 0;
 	info->using_minutes = 0;
